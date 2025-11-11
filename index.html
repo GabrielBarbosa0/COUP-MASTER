@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coup Master — Tela de Jogo (Ajuste)</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --panel-bg: rgba(255, 255, 255, 0.04);
+      --accent: #eab308;
+      --glass: rgba(255, 255, 255, 0.03);
+      --text: #e6eef8;
+      --muted: rgba(230, 238, 248, 0.6);
+      --card-width: 96px;
+      --card-height: 140px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg-color);
+      color: var(--text);
+    }
+
+    .game-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .branding {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .branding h1 {
+      font-size: 20px;
+      margin: 0;
+      letter-spacing: 0.6px;
+    }
+
+    .branding p {
+      margin: 2px 0 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .deck-info {
+      background: var(--panel-bg);
+      padding: 10px 14px;
+      border-radius: 10px;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .deck-info .count {
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .deck-info small {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 200px 1fr 200px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .left-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cemetery {
+      background: var(--glass);
+      padding: 10px;
+      border-radius: 10px;
+      min-height: 120px;
+    }
+
+    .cemetery h3 {
+      margin: 0 0 8px 0;
+      font-size: 13px;
+    }
+
+    .cemetery .cards {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .cemetery .cards img {
+      width: 48px;
+      height: 70px;
+      border-radius: 6px;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .player-slot {
+      background: var(--panel-bg);
+      padding: 8px;
+      border-radius: 10px;
+      min-width: 160px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .player-slot img.card {
+      width: 44px;
+      height: 64px;
+      border-radius: 6px;
+      object-fit: cover;
+    }
+
+    .player-slot .meta {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .playfield {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+      border-radius: 12px;
+      padding: 18px;
+      height: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .table-area {
+      width: 100%;
+      height: 100%;
+      border: 2px dashed rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+
+    .bottom-bar {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .hand {
+      flex: 1;
+      background: var(--panel-bg);
+      padding: 10px;
+      border-radius: 10px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 120px;
+    }
+
+    .hand .card {
+      width: var(--card-width);
+      height: var(--card-height);
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hand .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .actions {
+      width: 440px; /* aumentado para caber mais botões em 1920x1080 */
+      background: var(--glass);
+      padding: 14px 16px; /* mais compacto */
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px; /* diminui espaço entre linhas */
+      justify-content: center;
+      align-items: stretch;
+    }
+
+    .actions .row {
+      display: flex;
+      gap: 6px; /* reduz o espaço entre botões */
+    }
+
+    .btn {
+      flex: 1;
+      padding: 7px 10px; /* reduzido para caber mais */
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="game-wrapper">
+    <div class="top-bar">
+      <div class="branding">
+        <div>
+          <h1 id="game-title">Coup Master</h1>
+          <p id="room-code" class="muted">Sala: <span id="code">A1B2C3</span></p>
+        </div>
+      </div>
+      <div class="deck-info">
+        <div class="count" id="deck-count">35</div>
+        <small>Cartas no baralho</small>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="left-col">
+        <div class="cemetery">
+          <h3>Cemitério</h3>
+          <div class="cards" id="cemetery-cards">
+            <img src="assets/images/cards/capitao.png" alt="Carta eliminada 1" />
+            <img src="assets/images/cards/embaixador.png" alt="Carta eliminada 2" />
+            <img src="assets/images/cards/duque.png" alt="Carta eliminada 3" />
+          </div>
+        </div>
+        <div class="player-slot">
+          <img id="avatar-small" src="assets/images/avatars/Mr-rinha.png" alt="Você" style="width:44px;height:44px;border-radius:8px;object-fit:cover;" />
+          <div class="meta">
+            <div id="player-name">Você</div>
+            <div class="muted" id="player-coins">Moedas: 8</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="playfield">
+        <div class="table-area" id="table-area">
+          Área de jogo — cartas comunitárias / animações aqui (substitua depois)
+        </div>
+      </div>
+
+      <div class="right-col">
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 1" />
+          <div class="meta">
+            <div class="muted">Jogador 2</div>
+            <div class="muted">Influências: <span id="p2-influences">2</span></div>
+            <div class="muted" id="player-coins">Moedas: 5</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
+          <div class="meta">
+            <div class="muted">Jogador 3</div>
+            <div class="muted">Influências: <span id="p3-influences">1</span></div>
+            <div class="muted" id="player-coins">Moedas: 2</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
+          <div class="meta">
+            <div class="muted">Jogador 4</div>
+            <div class="muted">Influências: <span id="p3-influences">1</span></div>
+            <div class="muted" id="player-coins">Moedas: 2</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
+          <div class="meta">
+            <div class="muted">Jogador 5</div>
+            <div class="muted">Influências: <span id="p3-influences">1</span></div>
+            <div class="muted" id="player-coins">Moedas: 2</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 1" />
+          <div class="meta">
+            <div class="muted">Jogador 6</div>
+            <div class="muted">Influências: <span id="p2-influences">2</span></div>
+            <div class="muted" id="player-coins">Moedas: 5</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
+          <div class="meta">
+            <div class="muted">Jogador 7</div>
+            <div class="muted">Influências: <span id="p3-influences">1</span></div>
+            <div class="muted" id="player-coins">Moedas: 2</div>
+          </div>
+        </div>
+
+        <div class="player-slot">
+          <img class="card" src="assets/images/cards/capa.png" alt="Carta 2" />
+          <div class="meta">
+            <div class="muted">Jogador 8</div>
+            <div class="muted">Influências: <span id="p3-influences">1</span></div>
+            <div class="muted" id="player-coins">Moedas: 2</div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="hand">
+        <div class="card"><img src="assets/images/cards/assassino.png" alt="Sua carta 1"></div>
+        <div class="card"><img src="assets/images/cards/inquisitor.png" alt="Sua carta 2"></div>
+        <div class="card"><img src="assets/images/cards/condessa.png" alt="Sua carta 3"></div>
+        <div class="card"><img src="assets/images/cards/duque.png" alt="Sua carta 4"></div>
+      </div>
+
+      <div class="actions">
+        <div class="row">
+          <button class="btn">Renda</button>
+          <button class="btn">Ajuda Externa</button>
+          <button class="btn">Golpe de Estado</button>
+        </div>
+        <div class="row">
+          <button class="btn">Imposto</button>
+          <button class="btn">Extorquir</button>
+          <button class="btn">Assassinar</button>
+        </div>
+        <div class="row">
+          <button class="btn">Bloquear Assassino</button>
+          <button class="btn">Trocar 1 Carta</button>
+          <button class="btn">Trocar 2 Cartas</button>
+        </div>
+        <div class="row">
+          <button class="btn">Investigar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
