@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Card Game - Protótipo</title>
+<title>Coup Master - Protótipo</title>
 <style>
   :root{
     --bg:#171d26;
@@ -180,7 +180,7 @@
 <body>
 <div class="container">
   <header>
-    <h1>CARD-GAME</h1>
+    <h1>Coup Master</h1>
     <p>Sala: <strong id="room-code">1A2B3C4D</strong></p>
   </header>
 
@@ -273,12 +273,12 @@
 // === O JAVASCRIPT NÃO PRECISA DE MUDANÇAS ===
 
 const CARD_TYPES = [
-  {type:'Gold', color:'#f6b04d'},
-  {type:'Red', color:'#ff3b3b'},
-  {type:'Green', color:'#3aff7b'},
-  {type:'Cyan', color:'#49f0ff'},
-  {type:'Orange', color:'#ffb000'},
-  {type:'Blue', color:'#2a8cff'},
+  {type:'Assassino', color:'#5E5E5E'},
+  {type:'Inquisidor', color:'#ff3b3b'},
+  {type:'Embaixador', color:'#3aff7b'},
+  {type:'Duque', color:'#8A00C4'},
+  {type:'Condessa', color:'#B3EBF2'},
+  {type:'Capitão', color:'#2a8cff'},
 ];
 
 let deck = []; // array of card objects
