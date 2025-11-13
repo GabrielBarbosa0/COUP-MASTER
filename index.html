@@ -164,8 +164,8 @@
     }
 
     .deck {
-      width: 98px;
-      height: 148px;
+      width: 76px;
+      height: 110px;
       border-radius: 10px;
       cursor: pointer;
 
@@ -173,6 +173,8 @@
       background-image: url('./img/back.png');
       background-size: cover;
       background-position: center;
+
+      border: #1e90ff 3px solid;
 
       /* Esconde o texto "Deck" que estava lá antes */
       text-indent: -9999px;
@@ -230,8 +232,8 @@
     }
 
     .card.small {
-      width: 72px;
-      height: 100px
+      width: 74px;
+      height: 108px
     }
 
 
@@ -239,15 +241,11 @@
       cursor: grabbing;
     }
 
-    .card.small {
-      width: 72px;
-      height: 100px
-    }
 
     .card.back {
       background-image: url('./img/back.png');
       color: transparent
-    } 
+    }
 
     .card .label {
       padding: 6px;
@@ -346,8 +344,8 @@
       }
 
       .deck {
-        width: 92px;
-        height: 120px
+        width: 76px;
+        height: 110px
       }
 
       .card {
@@ -365,8 +363,8 @@
       }
 
       .card.small {
-        width: 60px;
-        height: 86px
+        width: 72px;
+        height: 107px
       }
 
       .free-area {
@@ -481,6 +479,10 @@
           </div>
 
           <div class="deck-area" id="deck-area">
+            <div class="pile-info muted">
+              <div>Clique para comprar</div>
+
+            </div>
             <div class="deck" id="deck" draggable="true">Deck</div>
             <div class="pile-info muted">
               <div>Cartas no deck: <span id="deck-count">0</span></div>
@@ -743,51 +745,51 @@
     // =======================================================
 
     function drawCard() {
-  if (!myPlayerId) return; // Não pode comprar se não for um jogador
+      if (!myPlayerId) return; // Não pode comprar se não for um jogador
 
-  // [CORREÇÃO 1] Adiciona a "trava"
-  if (isDrawingCard) {
-    console.log("Aguarde, comprando carta...");
-    return; // Já está comprando, ignora este clique
-  }
-  isDrawingCard = true; // Trava a função
+      // [CORREÇÃO 1] Adiciona a "trava"
+      if (isDrawingCard) {
+        console.log("Aguarde, comprando carta...");
+        return; // Já está comprando, ignora este clique
+      }
+      isDrawingCard = true; // Trava a função
 
-  gameStateRef.transaction((currentState) => {
-    if (!currentState) return currentState; // Jogo não existe
+      gameStateRef.transaction((currentState) => {
+        if (!currentState) return currentState; // Jogo não existe
 
-    if (!currentState.deck || currentState.deck.length === 0) {
-      console.log("Deck vazio.");
-      return currentState; // Aborta
+        if (!currentState.deck || currentState.deck.length === 0) {
+          console.log("Deck vazio.");
+          return currentState; // Aborta
+        }
+
+        // (O resto da sua lógica de "limite de mão removido" está correta)
+
+        // Pega a carta
+        const card = currentState.deck.pop();
+        card.owner = myPlayerId;
+        card.location = 'player-' + myPlayerId;
+        card.visible = false;
+
+        // Adiciona na mão
+        if (!currentState.players[myPlayerId].hand) {
+          currentState.players[myPlayerId].hand = [];
+        }
+        currentState.players[myPlayerId].hand.push(card);
+
+        return currentState; // Salva o novo estado
+      },
+        // [CORREÇÃO 2] Adiciona o "callback" de conclusão
+        (error, committed, snapshot) => {
+          if (error) {
+            console.error("Falha ao comprar carta:", error);
+          }
+
+          // Quando a transação terminar (com sucesso ou falha),
+          // destrava a função para o próximo clique.
+          isDrawingCard = false;
+        });
     }
 
-    // (O resto da sua lógica de "limite de mão removido" está correta)
-    
-    // Pega a carta
-    const card = currentState.deck.pop();
-    card.owner = myPlayerId;
-    card.location = 'player-' + myPlayerId;
-    card.visible = false;
-
-    // Adiciona na mão
-    if (!currentState.players[myPlayerId].hand) {
-      currentState.players[myPlayerId].hand = [];
-    }
-    currentState.players[myPlayerId].hand.push(card);
-
-    return currentState; // Salva o novo estado
-  }, 
-  // [CORREÇÃO 2] Adiciona o "callback" de conclusão
-  (error, committed, snapshot) => {
-    if (error) {
-      console.error("Falha ao comprar carta:", error);
-    }
-    
-    // Quando a transação terminar (com sucesso ou falha),
-    // destrava a função para o próximo clique.
-    isDrawingCard = false; 
-  });
-}
-    
     function returnCardToDeck(cardId) {
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
