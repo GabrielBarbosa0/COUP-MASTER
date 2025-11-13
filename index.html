@@ -243,11 +243,15 @@
     }
 
 
+    /* [CORREÇÃO] Aplicando o Grid de 2 colunas no seletor correto */
     .player-stack {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      align-items: center
+      display: grid;
+      grid-template-columns: repeat(2, auto);
+      gap: 8px;
+      justify-content: center;
+      align-items: center;
+      padding: 6px;
+      width: 100%;
     }
 
     /* Points controls */
@@ -456,7 +460,7 @@
             <div class="deck" id="deck" draggable="true">Deck</div>
             <div class="pile-info muted">
               <div>Cartas no deck: <span id="deck-count">0</span></div>
-              <div style="margin-left:8px">Grave: <span id="grave-count">0</span></div>
+
             </div>
           </div>
 
