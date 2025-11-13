@@ -139,12 +139,21 @@
       border: 3px dashed rgba(255, 255, 255, 0.12);
       padding: 8px;
       min-height: 140px;
-      display: flex;
+      display: flex; /* Esta linha já existe */
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
       position: relative;
     }
+
+    /* === [NOVO] Adicione esta regra === */
+    /* Esconde todos os jogadores por padrão para evitar o "flash" */
+    .player-hands-container > .player-area {
+      display: none;
+    }
+    /* === [FIM DA NOVA REGRA] === */
+
+
 
     .player-title {
       font-weight: 600;
