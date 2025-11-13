@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Card Game - Protótipo Online</title>
+<title>Coup Master - Protótipo Online</title>
 <style>
   :root{
     --bg:#171d26;
@@ -168,8 +168,8 @@
 <body>
 <div class="container">
   <header>
-    <h1>CARD-GAME</h1>
-    <p>Sala: <strong id="room-code">1A2B3C4D</strong></p>
+    <h1>Coup Master</h1>
+    <!-- <p>Sala: <strong id="room-code">1A2B3C4D</strong></p> -->
   </header>
 
   <div class="board">
@@ -277,12 +277,12 @@ const gameStateRef = db.ref('gameState');
 // =======================================================
 
 const CARD_TYPES = [
-  {type:'Gold', color:'#f6b04d'},
-  {type:'Red', color:'#ff3b3b'},
-  {type:'Green', color:'#3aff7b'},
-  {type:'Cyan', color:'#49f0ff'},
-  {type:'Orange', color:'#ffb000'},
-  {type:'Blue', color:'#2a8cff'},
+  {type:'Duque', color:'#f6b04d'},
+  {type:'Capitão', color:'#ff3b3b'},
+  {type:'Assassino', color:'#3aff7b'},
+  {type:'Embaixador', color:'#49f0ff'},
+  {type:'Condessa', color:'#ffb000'},
+  {type:'Inquisidor', color:'#2a8cff'},
 ];
 
 // O estado local é um "espelho" do que está no Firebase
