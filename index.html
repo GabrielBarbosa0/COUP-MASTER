@@ -43,7 +43,7 @@
 
     header {
       border-radius: 18px;
-      border: 4px dotted rgba(255, 255, 255, 0.12);
+      border: 3px dashed rgba(255, 255, 255, 0.12);
       padding: 26px 18px;
       text-align: center;
       background: #232a33;
@@ -78,6 +78,7 @@
     .board {
       background: var(--bg);
       border-radius: 14px;
+      border: 3px dashed rgba(255, 255, 255, 0.12);
       padding: 18px;
       box-shadow: 0 8px 24px rgba(10, 10, 12, 0.08);
     }
@@ -135,7 +136,7 @@
     /* Player areas labels (AJUSTADO) */
     .player-area {
       border-radius: 10px;
-      border: 2px dashed rgba(255, 255, 255, 0.12);
+      border: 3px dashed rgba(255, 255, 255, 0.12);
       padding: 8px;
       min-height: 140px;
       display: flex;
@@ -297,15 +298,16 @@
       padding: 4px 8px;
       border-radius: 6px;
       border: 0;
-      background: #111;
-      color: white;
+      background: #f6c204;
+      color: #000;
+      font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
       cursor: pointer
     }
 
     .points .score {
       min-width: 28px;
       text-align: center;
-      color: var(--muted)
+      color: #fff;
     }
 
     /* small labels */
@@ -519,7 +521,7 @@
 
     <div class="board">
       <div class="top-row">
-        <div class="room muted">Mesa principal</div>
+        <div class="room muted">    </div>
         <div class="controls">
           <button id="resetBtn" title="Resetar mesa">Resetar</button>
           <button id="shuffleBtn" title="Embaralhar deck">Embaralhar</button>
