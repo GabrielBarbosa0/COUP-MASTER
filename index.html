@@ -8,10 +8,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=info" />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap" rel="stylesheet">
 
 
   <style>
@@ -24,6 +21,12 @@
       --text: #e6eef6;
       --muted: rgba(230, 238, 246, 0.25);
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+
+
+    * {
+      font-family: "Cinzel", serif !important;
+
     }
 
     html,
@@ -65,12 +68,25 @@
       color: #444;
     }
 
-    .material-symbols-outlined {
-      font-variation-settings:
-        'FILL' 0,
-        'wght' 400,
-        'GRAD' 0,
-        'opsz' 24
+    .resetBtn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .infoBtn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .shuffleBtn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .infoBtn img {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
 
@@ -139,7 +155,8 @@
       border: 3px dashed #ffffff0f;
       padding: 8px;
       min-height: 140px;
-      display: flex; /* Esta linha já existe */
+      display: flex;
+      /* Esta linha já existe */
       flex-direction: column;
       align-items: center;
       justify-content: flex-start;
@@ -148,9 +165,10 @@
 
     /* === [NOVO] Adicione esta regra === */
     /* Esconde todos os jogadores por padrão para evitar o "flash" */
-    .player-hands-container > .player-area {
+    .player-hands-container>.player-area {
       display: none;
     }
+
     /* === [FIM DA NOVA REGRA] === */
 
 
@@ -202,6 +220,7 @@
       display: flex;
       gap: 12px;
       align-items: center;
+      text-align: center;
     }
 
     /* Free area below (AJUSTADO) */
@@ -531,14 +550,12 @@
 
     <div class="board">
       <div class="top-row">
-        <div class="room muted">    </div>
+        <div class="room muted"> </div>
         <div class="controls">
-          <button id="resetBtn" title="Resetar mesa">Resetar</button>
-          <button id="shuffleBtn" title="Embaralhar deck">Embaralhar</button>
-          <button id="infoBtn" title="Ver Ações"><span
-              class="material-symbols-outlined">
-              info
-            </span></button>
+          <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="img/cached.svg" alt=""></button>
+          <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
+              alt=""></button>
+          <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
         </div>
       </div>
 
@@ -639,7 +656,7 @@
             </div>
             <div class="deck" id="deck" draggable="true">Deck</div>
             <div class="pile-info muted">
-              <div>Cartas no deck: <span id="deck-count"></span> <br> Clique para comprar</div>
+              <div>Cartas no deck: <span id="deck-count"></span><br>Clique para comprar</div>
 
             </div>
           </div>
