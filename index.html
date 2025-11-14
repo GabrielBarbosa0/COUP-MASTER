@@ -730,7 +730,8 @@
           <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
               alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
-          <button id="configBtn" class="configBtn" title="Configurar Deck"><img src="img/settings_account.svg" alt=""></button>
+          <button id="configBtn" class="configBtn" title="Configurar Deck"><img src="img/settings_account.svg"
+              alt=""></button>
         </div>
       </div>
 
@@ -1614,13 +1615,13 @@
             deckConfig: defaultConfig, // [NOVO]
             // turn: 1, // [REMOVIDO]
             players: {
-              1: { hand: [], score: 2, online: true, religion: 'catolico' },
+              1: { hand: [], score: 2, online: true, religion: 'protestante' },
               2: { hand: [], score: 2, online: false, religion: 'catolico' },
-              3: { hand: [], score: 2, online: false, religion: 'catolico' },
+              3: { hand: [], score: 2, online: false, religion: 'protestante' },
               4: { hand: [], score: 2, online: false, religion: 'catolico' },
-              5: { hand: [], score: 2, online: false, religion: 'catolico' },
+              5: { hand: [], score: 2, online: false, religion: 'protestante' },
               6: { hand: [], score: 2, online: false, religion: 'catolico' },
-              7: { hand: [], score: 2, online: false, religion: 'catolico' },
+              7: { hand: [], score: 2, online: false, religion: 'protestante' },
               8: { hand: [], score: 2, online: false, religion: 'catolico' },
             }
           };
@@ -1637,8 +1638,7 @@
             currentState.players[i].online = true;
             currentState.players[i].score = currentState.players[i].score || 2;
             currentState.players[i].hand = currentState.players[i].hand || [];
-            currentState.players[i].religion = 'catolico'; // [NOVO]
-            myPlayerId = i;
+            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante'; myPlayerId = i;
             localStorage.setItem('myPlayerId', 1);
             return currentState;
           }
