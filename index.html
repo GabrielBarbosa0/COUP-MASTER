@@ -68,23 +68,24 @@
       color: #444;
     }
 
-    .resetBtn {
-      width: 36px;
-      height: 36px;
-    }
-
-    .infoBtn {
+    .resetBtn,
+    .infoBtn,
+    .shuffleBtn,
+    .configBtn {
+      /* Adicionado configBtn */
       width: 36px;
       height: 36px;
     }
 
     .shuffleBtn {
-      width: 36px;
-      height: 36px;
+
+      display: none;
     }
 
-    .infoBtn img {
-      width: 100%;
+
+    .infoBtn img,
+    .configBtn img {
+      /* width: 100%; */
       height: 100%;
       display: block;
     }
@@ -141,10 +142,11 @@
       gap: 18px;
     }
 
-    /* (NOVO) Container para a Área Livre e Deck embaixo */
+    /* [CORREÇÃO] Container inferior com 3 colunas */
     .bottom-table-container {
       display: grid;
-      grid-template-columns: 3fr 1fr;
+      grid-template-columns: 2fr 1fr 1fr;
+      /* Cemitério (2) | Asilo (1) | Deck (1) */
       gap: 18px;
       align-items: stretch;
     }
@@ -172,7 +174,7 @@
     /* === [FIM DA NOVA REGRA] === */
 
 
-    /* === NOVO ESTILO PARA O BOTÃO DE REMOVER === */
+    /* === [CORREÇÃO] ESTILO MINIMALISTA DO BOTÃO REMOVER === */
     .points {
       position: absolute;
       right: 8px;
@@ -184,13 +186,16 @@
     }
 
     .points .remove-player {
-
       background: #ff3b3b;
-      width: 0px;
+      width: 12px;
       height: 12px;
       color: white;
-      font-size: 3px;
+      font-size: 0;
+      /* Esconde o X */
       line-height: 1;
+      border-radius: 50%;
+      border: 1px solid white;
+      cursor: pointer;
     }
 
     .points .remove-player:hover {
@@ -199,10 +204,37 @@
 
     /* === FIM NOVO ESTILO === */
 
+    /* === [NOVO] ESTILO PARA RELIGIÃO === */
+    .religion-status {
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      color: white;
+      margin-top: 4px;
+      margin-bottom: 8px;
+      /* Ajusta espaço */
+      cursor: pointer;
+      user-select: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .religion-status.catolico {
+      background-color: #3b5998;
+      /* Azul */
+    }
+
+    .religion-status.protestante {
+      background-color: #f0943e;
+      /* Laranja */
+    }
+
+    /* === FIM NOVO ESTILO === */
+
 
     .player-title {
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 0px;
+      /* Reduzido */
       color: var(--muted);
     }
 
@@ -224,6 +256,60 @@
       background: var(--panel);
       min-height: 200px;
     }
+
+    /* === [NOVO] ESTILO PARA ÁREA DO ASILO === */
+    .asylum-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 3px dashed #f0943e80;
+      /* Borda laranja */
+      background: var(--panel);
+      min-height: 200px;
+      text-align: center;
+    }
+
+    .asylum-area .muted {
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .asylum-image {
+      width: 76px;
+      height: 76px;
+      background-image: url('img/asilo.png');
+      /* Caminho da imagem */
+      background-size: cover;
+      background-position: center;
+      border-radius: 10px;
+    }
+
+    .asylum-points {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .asylum-points button {
+      background: #f6c204;
+      color: #000;
+      border: 0;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .asylum-points .score {
+      min-width: 28px;
+      text-align: center;
+      color: #fff;
+    }
+
+    /* === FIM NOVO ESTILO === */
+
 
     .deck {
       width: 76px;
@@ -396,9 +482,10 @@
         /* 2x2 grid para tablets */
       }
 
+      /* [CORREÇÃO] Responsividade do grid inferior */
       .bottom-table-container {
         grid-template-columns: 1fr;
-        /* Stacka área livre e deck */
+        /* Stacka área livre, asilo e deck */
       }
 
       .deck {
@@ -443,7 +530,7 @@
 
       .bottom-table-container {
         grid-template-columns: 1fr;
-        /* Stacka área livre e deck */
+        /* Stacka área livre, asilo e deck */
         gap: 8px;
       }
 
@@ -491,8 +578,17 @@
     .modal-content {
       position: relative;
       padding: 20px;
-      /* O tamanho é definido pelo flip-card */
+      background: var(--panel);
+      border-radius: 10px;
     }
+
+    .modal-actions-and-rules {
+      position: relative;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+
 
     .close-btn {
       position: absolute;
@@ -557,6 +653,66 @@
       border-radius: 25px;
       object-fit: cover;
     }
+
+    /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
+    .card-config-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 60vh;
+      overflow-y: auto;
+    }
+
+    .card-config-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid var(--bg);
+    }
+
+    .card-config-item label {
+      font-size: 18px;
+      color: var(--text);
+    }
+
+    .card-config-item input {
+      width: 60px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid var(--accent);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      text-align: center;
+    }
+
+    .card-config-item input:disabled {
+      background: #555;
+      color: #999;
+      border-color: #555;
+    }
+
+    /* Estilo para o novo botão Aplicar */
+    #applyDeckConfigBtn {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      background: #00ff73;
+      /* Verde neon */
+      color: #111;
+      border: 0;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
+
+    #applyDeckConfigBtn:disabled {
+      background: #555;
+      color: #999;
+    }
+
+    /* === FIM DOS NOVOS ESTILOS === */
   </style>
 </head>
 
@@ -574,6 +730,7 @@
           <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
               alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
+          <button id="configBtn" class="configBtn" title="Configurar Deck"><img src="img/settings_account.svg" alt=""></button>
         </div>
       </div>
 
@@ -586,9 +743,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="1" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="1" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 1</div>
+            <div class="religion-status" data-pid="1">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -597,9 +755,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="2" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="2" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 2</div>
+            <div class="religion-status" data-pid="2">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -608,9 +767,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="3" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="3" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 3</div>
+            <div class="religion-status" data-pid="3">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -619,9 +779,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="4" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="4" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 4</div>
+            <div class="religion-status" data-pid="4">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -630,9 +791,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="5" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="5" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 5</div>
+            <div class="religion-status" data-pid="5">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -641,9 +803,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="6" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="6" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 6</div>
+            <div class="religion-status" data-pid="6">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -652,9 +815,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="7" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="7" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 7</div>
+            <div class="religion-status" data-pid="7">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -663,9 +827,10 @@
               <button class="minus">-</button>
               <div class="score" data-score>0</div>
               <button class="plus">+</button>
-              <button class="remove-player" data-pid="8" title="Remover Jogador">❌</button>
+              <button class="remove-player" data-pid="8" title="Remover Jogador"></button>
             </div>
             <div class="player-title">Jogador 8</div>
+            <div class="religion-status" data-pid="8">Católico</div>
             <div class="player-stack hand" data-hand></div>
           </div>
 
@@ -677,6 +842,16 @@
             </div>
           </div>
 
+          <div class="asylum-area" id="asylumArea">
+            <div class="muted">Asilo</div>
+            <div class="asylum-image">
+            </div>
+            <div class="asylum-points">
+              <button id="asylum-minus" title="Remover Moeda do Asilo">-</button>
+              <div id="asylum-score" class="score">0</div>
+              <button id="asylum-plus" title="Adicionar Moeda ao Asilo">+</button>
+            </div>
+          </div>
           <div class="deck-area" id="deck-area">
             <div class="pile-info muted">
             </div>
@@ -693,7 +868,7 @@
   </div>
 
   <div id="infoModal" class="modal-overlay" style="display: none;">
-    <div class="modal-content">
+    <div class="modal-actions-and-rules">
       <button id="closeModalBtn" class="close-btn">&times;</button>
 
       <div class="flip-card flip-horizontal-left">
@@ -706,6 +881,57 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <div id="configModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <button id="closeConfigModalBtn" class="close-btn">&times;</button>
+      <h2>Configurar Baralho</h2>
+      <p class="muted">Apenas o Jogador 1 (Host) pode editar. (Use 0 para remover uma carta)</p>
+      <ul class="card-config-list">
+        <li class="card-config-item">
+          <label for="config-duque">Duque</label>
+          <input type="number" id="config-duque" data-card="duque" min="0" max="10" value="5">
+        </li>
+        <li class="card-config-item">
+          <label for="config-capitao">Capitão</label>
+          <input type="number" id="config-capitao" data-card="capitao" min="0" max="10" value="5">
+        </li>
+        <li class="card-config-item">
+          <label for="config-assassino">Assassino</label>
+          <input type="number" id="config-assassino" data-card="assassino" min="0" max="10" value="5">
+        </li>
+        <li class="card-config-item">
+          <label for="config-embaixador">Embaixador</label>
+          <input type="number" id="config-embaixador" data-card="embaixador" min="0" max="10" value="5">
+        </li>
+        <li class="card-config-item">
+          <label for="config-condessa">Condessa</label>
+          <input type="number" id="config-condessa" data-card="condessa" min="0" max="10" value="5">
+        </li>
+        <li class="card-config-item">
+          <label for="config-inquisidor">Inquisidor</label>
+          <input type="number" id="config-inquisidor" data-card="inquisidor" min="0" max="10" value="3">
+        </li>
+        <li class="card-config-item">
+          <label for="config-benfeitor">Benfeitor</label>
+          <input type="number" id="config-benfeitor" data-card="benfeitor" min="0" max="10" value="3">
+        </li>
+        <li class="card-config-item">
+          <label for="config-bufao">Bufão</label>
+          <input type="number" id="config-bufao" data-card="bufao" min="0" max="10" value="3">
+        </li>
+        <li class="card-config-item">
+          <label for="config-burgues">Burguês</label>
+          <input type="number" id="config-burgues" data-card="burgues" min="0" max="10" value="3">
+        </li>
+        <li class="card-config-item">
+          <label for="config-burocrata">Burocrata</label>
+          <input type="number" id="config-burocrata" data-card="burocrata" min="0" max="10" value="3">
+        </li>
+      </ul>
+      <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -742,13 +968,18 @@
     // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
     // =======================================================
 
+    // [CORREÇÃO] Lista de TODAS as 10 cartas
     const CARD_TYPES = [
       { type: 'duque', color: '#f6b04d' },
       { type: 'capitao', color: '#ff3b3b' },
       { type: 'assassino', color: '#3aff7b' },
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
-      { type: 'inquisidor', color: '#2a8cff' }, // Nome Inquisidor está correto
+      { type: 'inquisidor', color: '#2a8cff' },
+      { type: 'benfeitor', color: '#C0C0C0' },
+      { type: 'bufao', color: '#FF69B4' },
+      { type: 'burgues', color: '#800080' },
+      { type: 'burocrata', color: '#A52A2A' }
     ];
 
     // O estado local é um "espelho" do que está no Firebase
@@ -764,25 +995,44 @@
     const shuffleBtn = document.getElementById('shuffleBtn');
     const resetBtn = document.getElementById('resetBtn');
 
+    // [NOVO] Referências do Asilo
+    const asylumScoreEl = document.getElementById('asylum-score');
+    const asylumPlusBtn = document.getElementById('asylum-plus');
+    const asylumMinusBtn = document.getElementById('asylum-minus');
+
     // =======================================================
     // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
     // =======================================================
 
-    function createDeck() {
+    // [CORREÇÃO] createDeck agora lê a configuração passada
+    function createDeck(config) { // <-- Aceita config
       let newDeck = [];
       let id = 1;
-      for (let t = 0; t < CARD_TYPES.length; t++) {
-        for (let i = 0; i < 5; i++) {
-          newDeck.push({
-            id: 'c' + (id++),
-            type: CARD_TYPES[t].type,
-            color: CARD_TYPES[t].color,
-            owner: null,
-            visible: false,
-            location: 'deck'
-          });
+
+      if (!config) {
+        console.error("Configuração do Deck (deckConfig) não encontrada! Usando padrão.");
+        config = createDefaultDeckConfig();
+      }
+
+      // Loop pela config, não pelo CARD_TYPES
+      for (const cardType in config) {
+        const quantity = config[cardType];
+        const cardInfo = CARD_TYPES.find(c => c.type === cardType); // Encontra a info da carta (cor)
+
+        if (cardInfo && quantity > 0) {
+          for (let i = 0; i < quantity; i++) {
+            newDeck.push({
+              id: 'c' + (id++),
+              type: cardInfo.type,
+              color: cardInfo.color,
+              owner: null,
+              visible: false,
+              location: 'deck'
+            });
+          }
         }
       }
+
       shuffle(newDeck);
       return newDeck;
     }
@@ -887,12 +1137,13 @@
         const playerEl = document.getElementById(`player-${pid}`);
         if (!playerEl) continue;
 
-        const player = state.players[pid] || { online: false, hand: [], score: 0 };
+        const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico' };
 
-        // [NOVO] DESTAQUE DE TURNO
+        /* [REMOVIDO]
         if (state.turn === pid) {
-          playerEl.classList.add('active-turn');
+            playerEl.classList.add('active-turn');
         }
+        */
 
         // LÓGICA DE MOSTRAR/OCULTAR
         if (player.online) {
@@ -906,6 +1157,20 @@
 
         if (pid === myPlayerId) {
           playerEl.classList.add('local-player');
+        }
+
+        // [NOVO] Renderiza o status da Religião
+        const religionEl = playerEl.querySelector('.religion-status');
+        if (religionEl) {
+          if (player.religion === 'protestante') {
+            religionEl.textContent = 'Protestante';
+            religionEl.classList.remove('catolico');
+            religionEl.classList.add('protestante');
+          } else {
+            religionEl.textContent = 'Católico';
+            religionEl.classList.remove('protestante');
+            religionEl.classList.add('catolico');
+          }
         }
 
         // 1. Renderiza os slots que TÊM cartas
@@ -944,12 +1209,28 @@
       if (graveCountEl) {
         graveCountEl.textContent = state.grave?.length || 0;
       }
+
+      // [NOVO] Atualiza contador do Asilo
+      if (asylumScoreEl) {
+        asylumScoreEl.textContent = state.asylumScore || 0;
+      }
+
+      // [NOVO] Sincroniza a UI de Configuração do Deck
+      if (state.deckConfig) {
+        for (const cardType in state.deckConfig) {
+          const input = document.getElementById(`config-${cardType}`);
+          if (input) {
+            input.value = state.deckConfig[cardType];
+          }
+        }
+      }
     }
 
     // =======================================================
     // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
     // =======================================================
 
+    // [CORREÇÃO] Função com trava de clique
     function drawCard() {
       if (!myPlayerId) return;
 
@@ -960,11 +1241,15 @@
       isDrawingCard = true;
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) return currentState;
+        if (!currentState) {
+          isDrawingCard = false; // [FIX] Libera a trava
+          return;
+        }
 
         if (!currentState.deck || currentState.deck.length === 0) {
           console.log("Deck vazio.");
-          return currentState;
+          isDrawingCard = false; // [FIX] Libera a trava
+          return;
         }
 
         const card = currentState.deck.pop();
@@ -1077,28 +1362,54 @@
       });
     }
 
-    function resetTable() {
+    // [NOVO] Função para o contador do Asilo
+    function updateAsylumScore(amount) {
+      const scoreRef = db.ref('gameState/asylumScore');
+      scoreRef.once('value', (snapshot) => {
+        let newScore = (snapshot.val() || 0) + amount;
+        if (newScore < 0) newScore = 0;
+        scoreRef.set(newScore);
+      });
+    }
+
+    // [NOVO] Função para trocar religião
+    function toggleReligion(pid) {
+      const religionRef = db.ref(`gameState/players/${pid}/religion`);
+      religionRef.transaction((currentReligion) => {
+        return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
+      });
+    }
+
+    // [CORREÇÃO] resetTable agora aceita um argumento
+    function resetTable(newConfig = null) {
       console.log("Resetando a mesa...");
-      let newDeck = createDeck();
+
+      // Se uma nova config foi passada (pelo botão Aplicar), usa ela.
+      // Se não (pelo botão Resetar), usa a que está salva.
+      const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
+
+      let newDeck = createDeck(configToUse); // <-- Passa a config para createDeck
 
       let currentPlayers = localGameState.players || {};
 
       let newPlayersState = {
-        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2 },
-        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2 },
-        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2 },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2 },
-        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2 },
-        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2 },
-        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2 },
-        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2 },
+        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2, religion: 'catolico' },
+        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2, religion: 'catolico' },
       };
 
       let initialState = {
         deck: newDeck,
         grave: [],
         freeCards: [],
-        turn: 1, // Inicia o turno no jogador 1
+        asylumScore: 0, // [NOVO]
+        deckConfig: configToUse, // Salva a config usada
+        // turn: 1, // [REMOVIDO]
         players: newPlayersState
       };
 
@@ -1112,6 +1423,14 @@
         }
         return currentState;
       });
+    }
+
+    // [NOVO] Função helper para criar a config padrão
+    function createDefaultDeckConfig() {
+      return {
+        'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
+        'inquisidor': 3, 'benfeitor': 3, 'bufao': 3, 'burgues': 3, 'burocrata': 3
+      };
     }
 
     // =======================================================
@@ -1165,6 +1484,61 @@
         };
       }
 
+      // [NOVO] LÓGICA DO CONTADOR DO ASILO
+      if (asylumPlusBtn && asylumMinusBtn) {
+        asylumPlusBtn.onclick = () => updateAsylumScore(1);
+        asylumMinusBtn.onclick = () => updateAsylumScore(-1);
+      }
+
+      // [NOVO] LÓGICA DO MODAL DE CONFIGURAÇÃO
+      const configBtn = document.getElementById('configBtn');
+      const configModal = document.getElementById('configModal');
+      const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
+      const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
+      const configInputs = document.querySelectorAll('.card-config-item input');
+
+      if (configBtn && configModal && closeConfigModalBtn) {
+        configBtn.onclick = () => { configModal.style.display = 'flex'; };
+        closeConfigModalBtn.onclick = () => { configModal.style.display = 'none'; };
+      }
+
+      // Lógica dos Inputs (apenas desabilitar)
+      configInputs.forEach(input => {
+        if (myPlayerId !== 1) {
+          input.disabled = true;
+        }
+      });
+
+      // [NOVA LÓGICA] Botão Aplicar
+      if (applyDeckConfigBtn) {
+        if (myPlayerId !== 1) {
+          applyDeckConfigBtn.disabled = true;
+          applyDeckConfigBtn.style.background = '#555';
+          applyDeckConfigBtn.textContent = 'Apenas o Host (Jogador 1) pode aplicar';
+        } else {
+          applyDeckConfigBtn.onclick = () => {
+            // 1. Monta o objeto de configuração
+            const newConfig = {};
+            configInputs.forEach(input => {
+              const cardType = input.dataset.card;
+              let quantity = parseInt(input.value);
+              if (isNaN(quantity) || quantity < 0) quantity = 0;
+              if (quantity > 10) quantity = 10;
+              input.value = quantity; // Corrige a UI
+              newConfig[cardType] = quantity;
+            });
+
+            console.log("Aplicando nova configuração e resetando...", newConfig);
+
+            // 2. Chama o reset passando a nova config
+            resetTable(newConfig);
+
+            // 3. Fecha o modal
+            configModal.style.display = 'none';
+          };
+        }
+      }
+
 
       // Controles de pontos +/- e NOVO BOTÃO DE REMOVER
       document.querySelectorAll('.player-area').forEach(area => {
@@ -1175,6 +1549,14 @@
         if (removeBtn) {
           removeBtn.addEventListener('click', () => {
             kickPlayer(pid);
+          });
+        }
+
+        // [NOVO] Listener para trocar religião
+        const religionEl = area.querySelector('.religion-status');
+        if (religionEl) {
+          religionEl.addEventListener('click', () => {
+            toggleReligion(pid);
           });
         }
 
@@ -1221,18 +1603,25 @@
       gameStateRef.transaction((currentState) => {
         if (!currentState || !currentState.players) {
           // Criação inicial da sala (JOGADOR 1)
-          let newDeck = createDeck();
+          const defaultConfig = createDefaultDeckConfig(); // [NOVO]
+          let newDeck = createDeck(defaultConfig); // [NOVO]
+
           let initialState = {
             deck: newDeck,
             grave: [],
             freeCards: [],
-            turn: 1,
+            asylumScore: 0, // [NOVO]
+            deckConfig: defaultConfig, // [NOVO]
+            // turn: 1, // [REMOVIDO]
             players: {
-              1: { hand: [], score: 2, online: true },
-              2: { hand: [], score: 2, online: false }, 3: { hand: [], score: 2, online: false },
-              4: { hand: [], score: 2, online: false }, 5: { hand: [], score: 2, online: false },
-              6: { hand: [], score: 2, online: false }, 7: { hand: [], score: 2, online: false },
-              8: { hand: [], score: 2, online: false },
+              1: { hand: [], score: 2, online: true, religion: 'catolico' },
+              2: { hand: [], score: 2, online: false, religion: 'catolico' },
+              3: { hand: [], score: 2, online: false, religion: 'catolico' },
+              4: { hand: [], score: 2, online: false, religion: 'catolico' },
+              5: { hand: [], score: 2, online: false, religion: 'catolico' },
+              6: { hand: [], score: 2, online: false, religion: 'catolico' },
+              7: { hand: [], score: 2, online: false, religion: 'catolico' },
+              8: { hand: [], score: 2, online: false, religion: 'catolico' },
             }
           };
           myPlayerId = 1;
@@ -1248,8 +1637,9 @@
             currentState.players[i].online = true;
             currentState.players[i].score = currentState.players[i].score || 2;
             currentState.players[i].hand = currentState.players[i].hand || [];
+            currentState.players[i].religion = 'catolico'; // [NOVO]
             myPlayerId = i;
-            localStorage.setItem('myPlayerId', i);
+            localStorage.setItem('myPlayerId', 1);
             return currentState;
           }
         }
