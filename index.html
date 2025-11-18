@@ -1768,12 +1768,34 @@
       });
     }
 
+
+// [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
+    function setupAutoScroll() {
+      const threshold = 80; // Pixels da borda para ativar o scroll
+      const speed = 15;      // Velocidade de rolagem
+
+      window.addEventListener('dragover', (e) => {
+        // A posição Y do cursor/dedo
+        const y = e.clientY;
+        const viewportHeight = window.innerHeight;
+
+        // Se estiver perto do topo -> Rola para cima
+        if (y < threshold) {
+          window.scrollBy(0, -speed);
+        } 
+        // Se estiver perto do fundo -> Rola para baixo
+        else if (y > (viewportHeight - threshold)) {
+          window.scrollBy(0, speed);
+        }
+      });
+    }
+
     // =======================================================
     // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
     // =======================================================
 
     function initializeGame() {
-      const persistedId = sessionStorage.getItem('myPlayerId'); // <-- MUDADO para sessionStorage
+      const persistedId = sessionStorage.getItem('myPlayerId');
       if (persistedId) {
         myPlayerId = parseInt(persistedId);
       }
@@ -1791,10 +1813,13 @@
       findAndOccupySlot();
       setupUI();
       setupDropzones();
+      
+      setupAutoScroll(); // <--- VOCÊ TINHA ESQUECIDO ESTA LINHA!
     }
 
     // Inicia o jogo!
     initializeGame();
+    
 
   </script>
 </body>
