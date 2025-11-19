@@ -715,7 +715,9 @@
     }
 
     /* --- Estilos do Flip-Card --- */
-    .flip-horizontal-left:hover .flip-card-inner {
+    
+    /* [NOVO] A carta só gira se tiver a classe 'is-flipped' */
+    .flip-card.is-flipped .flip-card-inner {
       transform: rotateY(-180deg);
     }
 
@@ -1722,19 +1724,40 @@
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeModalBtn = document.getElementById('closeModalBtn');
+      const flipCard = document.querySelector('.flip-card'); // [NOVO] Referência à carta
 
       if (infoBtn && infoModal && closeModalBtn) {
-        playSound('click'); // <--- ADICIONE AQUI
-        infoBtn.onclick = () => { infoModal.style.display = 'flex'; };
+        
+        // Abrir Modal
+        infoBtn.onclick = () => {
+          playSound('click');
+          infoModal.style.display = 'flex';
+        };
 
-        closeModalBtn.onclick = () => { infoModal.style.display = 'none'; };
-        playSound('click'); // <--- ADICIONE AQUI
+        // Fechar Modal (Botão X)
+        closeModalBtn.onclick = () => {
+          playSound('click');
+          infoModal.style.display = 'none';
+          // [OPCIONAL] Reseta a carta para frente quando fecha
+          if (flipCard) flipCard.classList.remove('is-flipped');
+        };
 
+        // Fechar Modal (Clicar fora)
         infoModal.onclick = (e) => {
           if (e.target === infoModal) {
             infoModal.style.display = 'none';
+            // [OPCIONAL] Reseta a carta para frente quando fecha
+            if (flipCard) flipCard.classList.remove('is-flipped');
           }
         };
+
+        // [NOVO] Lógica de Girar a Carta ao Clicar
+        if (flipCard) {
+            flipCard.onclick = () => {
+                playSound('card-slide'); // Adiciona um som legal ao girar
+                flipCard.classList.toggle('is-flipped'); // Alterna o giro
+            };
+        }
       }
 
       // [NOVO] LÓGICA DO CONTADOR DO ASILO
