@@ -4,7 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Coup Master - Protótipo Online</title>
+  <title>Coup Master - Protótipo</title>
+  <link rel="shortcut icon" href="img/coup.png" type="image/x-icon">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -73,7 +74,8 @@
     .resetBtn,
     .infoBtn,
     .shuffleBtn,
-    .configBtn {
+    .configBtn,
+    .musicBtn {
       /* Adicionado configBtn */
       width: 36px;
       height: 36px;
@@ -86,10 +88,37 @@
 
 
     .infoBtn img,
-    .configBtn img {
+    .configBtn img, 
+    .musicBtn img {
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+
+    /* [NOVO] Estilo visual para quando a música estiver desligada */
+    .musicBtn.muted {
+      opacity: 0.4; /* Fica "apagado" */
+      filter: grayscale(100%); /* Fica cinza */
+    }
+
+
+    /* [NOVO] Estilo do Slider de Volume */
+    #volumeSlider {
+      width: 60px; /* Largura compacta */
+      height: 6px;
+      background: #232a33;
+      border-radius: 5px;
+      outline: none;
+      opacity: 0.7;
+      transition: opacity .2s;
+      cursor: pointer;
+      align-self: center; /* Centraliza verticalmente na barra */
+      accent-color: #1e90ff; /* Cor azul do tema para a "bolinha" do slider */
+    }
+
+    #volumeSlider:hover {
+      opacity: 1;
     }
 
 
@@ -228,7 +257,7 @@
       /* Ajusta espaço */
       cursor: pointer;
       user-select: none;
-      border: 1px solid rgba(255, 255, 255, 0.3);
+      border: 1px solid #ffffff4d;
     }
 
     .religion-status.catolico {
@@ -265,7 +294,7 @@
       gap: 10px;
       padding: 18px;
       border-radius: 18px;
-      border: 3px dashed rgba(255, 255, 255, 0.08);
+      border: 3px dashed #1e90ff ;
       background: var(--panel);
       /* min-height: 200px; */
     }
@@ -307,17 +336,19 @@
       align-items: center;
     }
 
-   .asylum-points button {
+    .asylum-points button {
       background: #f6c204;
       color: #000;
       border: 0;
       cursor: pointer;
 
       /* === [CORREÇÃO] Círculo Perfeito === */
-      width: 22px;  /* Mesmo tamanho dos botões de jogador */
+      width: 22px;
+      /* Mesmo tamanho dos botões de jogador */
       height: 22px;
-      border-radius: 50%; /* Garante um círculo perfeito */
-      
+      border-radius: 50%;
+      /* Garante um círculo perfeito */
+
       /* Centralização do + e - */
       padding: 0;
       display: inline-flex;
@@ -347,7 +378,7 @@
       background-size: cover;
       background-position: center;
 
-      border: #1e90ff 3px solid;
+      /* border: #1e90ff 3px solid; */
 
       /* Esconde o texto "Deck" que estava lá antes */
       text-indent: -9999px;
@@ -768,6 +799,9 @@
           <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="img/cached.svg" alt=""></button>
         </div>
         <div class="controls">
+          <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="img/music_note.svg"
+              alt="Música"></button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" title="Volume da Música">
           <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
               alt=""></button>
           <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
@@ -980,6 +1014,10 @@
           <input type="number" id="config-mercenario" data-card="mercenario" min="0" max="10" value="0">
         </li>
         <li class="card-config-item">
+          <label for="config-guardiao_real">Guardião Real</label>
+          <input type="number" id="config-guardiao-real" data-card="guardiao-real" min="0" max="10" value="0">
+        </li>
+        <li class="card-config-item">
           <label for="config-purificador">Purificador</label>
           <input type="number" id="config-purificador" data-card="purificador" min="0" max="10" value="0">
         </li>
@@ -1012,6 +1050,11 @@
       <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
     </div>
   </div>
+
+  <audio id="bgmAudio" loop autoplay> <source src="audio/bgm.mp3" type="audio/mpeg"></audio>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
@@ -1062,6 +1105,7 @@
       // --- personagens originais ---
       { type: 'vigilante', color: '#FFFFFF' },
       { type: 'mercenario', color: '#FFFFFF' },
+      { type: 'guardiao-real', color: '#FFFFFF' },
       { type: 'purificador', color: '#FFFFFF' },
       { type: 'tesoureiro_da_coroa', color: '#FFFFFF' },
       { type: 'diplomata', color: '#FFFFFF' },
@@ -1520,15 +1564,8 @@
         'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
         'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
 
-        'vigilante': 0,
-        'mercenario': 0,
-        'purificador': 0,
-        'tesoureiro_da_coroa': 0,
-        'diplomata': 0,
-        'marionetista': 0,
-        'contador_real': 0,
-        'contrabandista': 0,
-        'camaleao': 0
+        'vigilante': 0, 'guardiao_real': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
+        'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
       };
     }
 
@@ -1567,6 +1604,58 @@
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
       resetBtn.onclick = () => resetTable(); // Chama sem argumentos
+
+      // === LÓGICA DA MÚSICA E VOLUME ===
+      const musicBtn = document.getElementById('musicBtn');
+      const bgmAudio = document.getElementById('bgmAudio');
+      const volumeSlider = document.getElementById('volumeSlider');
+
+      // Define o volume inicial
+      if (bgmAudio) {
+        bgmAudio.volume = 0.1; // 30%
+      }
+
+      // Lógica do Slider de Volume
+      if (volumeSlider && bgmAudio) {
+        // Sincroniza o slider com o volume inicial
+        volumeSlider.value = bgmAudio.volume;
+
+        volumeSlider.addEventListener('input', (e) => {
+          const newVolume = e.target.value;
+          bgmAudio.volume = newVolume;
+        });
+      }
+
+
+      // Lógica do Botão Play/Pause
+      if (musicBtn && bgmAudio) {
+        
+        // [MODIFICADO] Tenta tocar a música imediatamente ao carregar
+        bgmAudio.play().then(() => {
+            // Sucesso! O navegador permitiu. O botão fica normal (sem mute).
+            musicBtn.classList.remove('muted');
+        }).catch(error => {
+            // Bloqueado! O navegador impediu o som automático.
+            // Deixamos o botão mutado visualmente até o jogador clicar.
+            console.log("Autoplay bloqueado (esperando interação):", error);
+            musicBtn.classList.add('muted');
+        });
+
+        musicBtn.onclick = () => {
+          if (bgmAudio.paused) {
+            bgmAudio.play().then(() => {
+              musicBtn.classList.remove('muted');
+            }).catch(error => {
+              console.log("Reprodução de áudio bloqueada:", error);
+            });
+          } else {
+            bgmAudio.pause();
+            musicBtn.classList.add('muted');
+          }
+        };
+      }
+      // === FIM DA LÓGICA DE MÚSICA ===
+
 
       // LÓGICA DO MODAL DE INFO
       const infoBtn = document.getElementById('infoBtn');
@@ -1769,7 +1858,7 @@
     }
 
 
-// [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
+    // [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
     function setupAutoScroll() {
       const threshold = 80; // Pixels da borda para ativar o scroll
       const speed = 15;      // Velocidade de rolagem
@@ -1782,7 +1871,7 @@
         // Se estiver perto do topo -> Rola para cima
         if (y < threshold) {
           window.scrollBy(0, -speed);
-        } 
+        }
         // Se estiver perto do fundo -> Rola para baixo
         else if (y > (viewportHeight - threshold)) {
           window.scrollBy(0, speed);
@@ -1813,13 +1902,13 @@
       findAndOccupySlot();
       setupUI();
       setupDropzones();
-      
+
       setupAutoScroll(); // <--- VOCÊ TINHA ESQUECIDO ESTA LINHA!
     }
 
     // Inicia o jogo!
     initializeGame();
-    
+
 
   </script>
 </body>
