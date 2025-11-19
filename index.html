@@ -408,8 +408,32 @@
       flex-wrap: wrap;
       align-items: flex-start;
       justify-content: flex-start;
-      background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
+      background: linear-gradient(180deg, #0000000d, #00000005);
       text-align: center;
+
+      /* [NOVO] Necessário para posicionar a caveira no fundo */
+      position: relative;
+      z-index: 1;
+      overflow: hidden; /* Garante que a imagem não saia das bordas arredondadas */
+    }
+
+    /* [NOVO] Caveira de fundo semitransparente */
+    .free-area::before {
+      content: "";
+      background-image: url('img/skull.svg'); /* Caminho da sua imagem */
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 30%; /* Ajuste o tamanho da caveira aqui (ex: 100px ou 30%) */
+      opacity: 0.03; /* Ajuste a transparência (0.1 é bem fraco, 1.0 é total) */
+      
+      /* Posicionamento absoluto para cobrir a área */
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1; /* Fica atrás das cartas e do texto */
+      pointer-events: none; /* Garante que não atrapalhe os cliques */
     }
 
 
