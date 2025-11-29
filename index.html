@@ -1140,6 +1140,17 @@
       }
     }
 
+    // Variável para não repetir sons antigos
+    let lastSoundTimestamp = 0;
+
+    // [NOVO] Função que manda o som para TODOS os jogadores
+    function triggerSound(soundId) {
+      db.ref('gameState/lastSFX').set({
+        id: soundId,
+        timestamp: Date.now() // Usa a hora atual para garantir que é um som novo
+      });
+    }
+
     // =======================================================
     // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
     // =======================================================
@@ -1421,6 +1432,10 @@
     // [CORREÇÃO] Função com trava de clique
     function drawCard() {
       if (!myPlayerId) return;
+      if (isDrawingCard) return;
+
+      isDrawingCard = true;
+      triggerSound('card-slide'); // <--- MUDADO PARA TRIGGER (GLOBAL)
 
       if (isDrawingCard) {
         console.log("Aguarde, comprando carta...");
@@ -1464,7 +1479,7 @@
 
 
     function returnCardToDeck(cardId) {
-      playSound('shuffle'); // <--- ADICIONE AQUI (Som de embaralhar/devolver)
+      triggerSound('shuffle'); // <--- MUDADO PARA TRIGGER
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
 
@@ -1486,9 +1501,9 @@
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
-
-      if (targetLocation === 'free') playSound('card-place'); // Som de colocar na mesa (cemitério)
-      if (targetLocation === 'deck') playSound('shuffle');    // Som de devolver ao deck
+      // Sons globais dependendo de onde soltou
+      if (targetLocation === 'free') triggerSound('card-place'); // Cemitério
+      if (targetLocation === 'deck') triggerSound('shuffle');    // Devolver pro Deck
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
@@ -1548,7 +1563,7 @@
     }
 
     function updateScore(pid, amount) {
-      playSound('coin'); // <--- ADICIONE AQUI
+      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
 
       scoreRef.once('value', (snapshot) => {
@@ -1560,7 +1575,7 @@
 
     // [NOVO] Função para o contador do Asilo
     function updateAsylumScore(amount) {
-      playSound('coin'); // <--- ADICIONE AQUI
+      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
 
       const scoreRef = db.ref('gameState/asylumScore');
       scoreRef.once('value', (snapshot) => {
@@ -1572,7 +1587,7 @@
 
     // [NOVO] Função para trocar religião
     function toggleReligion(pid) {
-      playSound('paper'); // <--- ADICIONE AQUI
+      triggerSound('paper'); // <--- MUDADO PARA TRIGGER
       const religionRef = db.ref(`gameState/players/${pid}/religion`);
       religionRef.transaction((currentReligion) => {
         return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
@@ -1616,6 +1631,7 @@
     }
 
     function shuffleDeck() {
+      triggerSound('shuffle'); // <--- MUDADO PARA TRIGGER
       gameStateRef.transaction((currentState) => {
         if (currentState && currentState.deck) {
           shuffle(currentState.deck);
@@ -2022,6 +2038,14 @@
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
+          // === [NOVO] Lógica de Sincronização de Som ===
+          // Se houver um som novo (timestamp maior que o último que ouvimos)
+          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
+             lastSoundTimestamp = state.lastSFX.timestamp; // Atualiza nosso registro
+             playSound(state.lastSFX.id); // Toca o som
+          }
+          // ============================================
+
           localGameState = state;
           renderAll();
         }
@@ -2030,8 +2054,7 @@
       findAndOccupySlot();
       setupUI();
       setupDropzones();
-
-      setupAutoScroll(); // <--- VOCÊ TINHA ESQUECIDO ESTA LINHA!
+      setupAutoScroll();
     }
 
     // Inicia o jogo!
