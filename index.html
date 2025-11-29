@@ -753,10 +753,7 @@
       width: 100%;
       height: 100%;
       border-radius: 25px;
-      /* MUDANÇA AQUI: 'contain' garante que a imagem inteira apareça na melhor qualidade possível */
-      object-fit: contain; 
-      /* Opcional: ajuda a suavizar em alguns navegadores se a imagem for muito pequena */
-      image-rendering: -webkit-optimize-contrast;
+      object-fit: cover;
     }
 
     /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
@@ -1140,17 +1137,6 @@
       }
     }
 
-    // Variável para não repetir sons antigos
-    let lastSoundTimestamp = 0;
-
-    // [NOVO] Função que manda o som para TODOS os jogadores
-    function triggerSound(soundId) {
-      db.ref('gameState/lastSFX').set({
-        id: soundId,
-        timestamp: Date.now() // Usa a hora atual para garantir que é um som novo
-      });
-    }
-
     // =======================================================
     // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
     // =======================================================
@@ -1432,10 +1418,6 @@
     // [CORREÇÃO] Função com trava de clique
     function drawCard() {
       if (!myPlayerId) return;
-      if (isDrawingCard) return;
-
-      isDrawingCard = true;
-      triggerSound('card-slide'); // <--- MUDADO PARA TRIGGER (GLOBAL)
 
       if (isDrawingCard) {
         console.log("Aguarde, comprando carta...");
@@ -1479,7 +1461,7 @@
 
 
     function returnCardToDeck(cardId) {
-      triggerSound('shuffle'); // <--- MUDADO PARA TRIGGER
+      playSound('shuffle'); // <--- ADICIONE AQUI (Som de embaralhar/devolver)
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
 
@@ -1501,9 +1483,9 @@
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
-      // Sons globais dependendo de onde soltou
-      if (targetLocation === 'free') triggerSound('card-place'); // Cemitério
-      if (targetLocation === 'deck') triggerSound('shuffle');    // Devolver pro Deck
+
+      if (targetLocation === 'free') playSound('card-place'); // Som de colocar na mesa (cemitério)
+      if (targetLocation === 'deck') playSound('shuffle');    // Som de devolver ao deck
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
@@ -1563,7 +1545,7 @@
     }
 
     function updateScore(pid, amount) {
-      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
+      playSound('coin'); // <--- ADICIONE AQUI
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
 
       scoreRef.once('value', (snapshot) => {
@@ -1575,7 +1557,7 @@
 
     // [NOVO] Função para o contador do Asilo
     function updateAsylumScore(amount) {
-      triggerSound('coin'); // <--- MUDADO PARA TRIGGER
+      playSound('coin'); // <--- ADICIONE AQUI
 
       const scoreRef = db.ref('gameState/asylumScore');
       scoreRef.once('value', (snapshot) => {
@@ -1587,7 +1569,7 @@
 
     // [NOVO] Função para trocar religião
     function toggleReligion(pid) {
-      triggerSound('paper'); // <--- MUDADO PARA TRIGGER
+      playSound('paper'); // <--- ADICIONE AQUI
       const religionRef = db.ref(`gameState/players/${pid}/religion`);
       religionRef.transaction((currentReligion) => {
         return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
@@ -1631,7 +1613,6 @@
     }
 
     function shuffleDeck() {
-      triggerSound('shuffle'); // <--- MUDADO PARA TRIGGER
       gameStateRef.transaction((currentState) => {
         if (currentState && currentState.deck) {
           shuffle(currentState.deck);
@@ -1739,76 +1720,44 @@
       // === FIM DA LÓGICA DE MÚSICA ===
 
 
-     // === LÓGICA DO MODAL DE INFO (COM 3 FASES) ===
+      // LÓGICA DO MODAL DE INFO
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeModalBtn = document.getElementById('closeModalBtn');
-      const flipCard = document.querySelector('.flip-card');
-      
-      // Referências às imagens dentro do card
-      const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
-      const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
+      const flipCard = document.querySelector('.flip-card'); // [NOVO] Referência à carta
 
-      // Lista das 3 imagens (Ciclo: Base -> DLC -> Turno)
-      const ruleImages = [
-        'img/front-actions.png', // 1. Ações Base (Início)
-        'img/dlc-actions.png',   // 2. Ações DLC (Adicione esta imagem na pasta img/)
-        'img/back-actions.png'   // 3. Ações Turno
-      ];
-
-      let currentRuleIndex = 0; 
-
-      if (infoBtn && infoModal && closeModalBtn && flipCard) {
+      if (infoBtn && infoModal && closeModalBtn) {
         
-        // Ao abrir, reseta para o estado inicial
+        // Abrir Modal
         infoBtn.onclick = () => {
           playSound('click');
           infoModal.style.display = 'flex';
-          
-          // Reseta a carta para a posição inicial e imagem 1
-          currentRuleIndex = 0;
-          flipCard.classList.remove('is-flipped');
-          frontImg.src = ruleImages[0];
-          backImg.src = ruleImages[1]; // Já prepara a imagem 2 no verso
         };
 
-        // Função para fechar o modal
-        const closeModal = () => {
-            playSound('click');
-            infoModal.style.display = 'none';
+        // Fechar Modal (Botão X)
+        closeModalBtn.onclick = () => {
+          playSound('click');
+          infoModal.style.display = 'none';
+          // [OPCIONAL] Reseta a carta para frente quando fecha
+          if (flipCard) flipCard.classList.remove('is-flipped');
         };
-        
-        closeModalBtn.onclick = closeModal;
-        
-        // Fecha ao clicar no fundo escuro
+
+        // Fechar Modal (Clicar fora)
         infoModal.onclick = (e) => {
-          if (e.target === infoModal) closeModal();
+          if (e.target === infoModal) {
+            infoModal.style.display = 'none';
+            // [OPCIONAL] Reseta a carta para frente quando fecha
+            if (flipCard) flipCard.classList.remove('is-flipped');
+          }
         };
 
-        // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
-        flipCard.onclick = () => {
-            playSound('card-slide');
-            
-            // 1. Gira a carta
-            flipCard.classList.toggle('is-flipped');
-            
-            // 2. Avança o índice para a próxima imagem da lista
-            currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
-            
-            // 3. Troca a imagem que está ESCONDIDA (atrás) no meio da animação
-            // Espera 500ms (metade do tempo da transição CSS de 1s)
-            setTimeout(() => {
-                const nextImageIndex = (currentRuleIndex + 1) % ruleImages.length;
-                
-                if (flipCard.classList.contains('is-flipped')) {
-                    // Se estamos vendo o Verso, trocamos a Frente (que está escondida)
-                    frontImg.src = ruleImages[nextImageIndex];
-                } else {
-                    // Se estamos vendo a Frente, trocamos o Verso (que está escondido)
-                    backImg.src = ruleImages[nextImageIndex];
-                }
-            }, 500);
-        };
+        // [NOVO] Lógica de Girar a Carta ao Clicar
+        if (flipCard) {
+            flipCard.onclick = () => {
+                playSound('card-slide'); // Adiciona um som legal ao girar
+                flipCard.classList.toggle('is-flipped'); // Alterna o giro
+            };
+        }
       }
 
       // [NOVO] LÓGICA DO CONTADOR DO ASILO
@@ -2038,14 +1987,6 @@
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
-          // === [NOVO] Lógica de Sincronização de Som ===
-          // Se houver um som novo (timestamp maior que o último que ouvimos)
-          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
-             lastSoundTimestamp = state.lastSFX.timestamp; // Atualiza nosso registro
-             playSound(state.lastSFX.id); // Toca o som
-          }
-          // ============================================
-
           localGameState = state;
           renderAll();
         }
@@ -2054,7 +1995,8 @@
       findAndOccupySlot();
       setupUI();
       setupDropzones();
-      setupAutoScroll();
+
+      setupAutoScroll(); // <--- VOCÊ TINHA ESQUECIDO ESTA LINHA!
     }
 
     // Inicia o jogo!
