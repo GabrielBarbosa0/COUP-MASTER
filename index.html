@@ -1120,7 +1120,6 @@
       measurementId: "G-2BQR65QP2Z"
     };
 
-    // Inicializa o Firebase
     if (!firebaseConfig.apiKey) {
       document.body.innerHTML = "<h1>Erro: configure o firebaseConfig no script!</h1>";
       console.error("Firebase config is missing!");
@@ -1131,28 +1130,27 @@
     const gameStateRef = db.ref('gameState');
 
 
-    // [NOVO] FUNÇÃO DE TOCAR SOM
+    // =======================================================
+    // === 2. SISTEMA DE SOM E VARIÁVEIS GLOBAIS ===
+    // =======================================================
+
+    // 1. Tocar som Localmente (apenas para você)
     function playSound(id) {
       const sound = document.getElementById('audio-' + id);
       if (sound) {
-        sound.currentTime = 0; // Reinicia o som se já estiver tocando (para cliques rápidos)
-        sound.play().catch(e => console.log("Erro ao tocar som:", e));
+        sound.currentTime = 0;
+        sound.play().catch(e => { /* Ignora erros de autoplay */ });
       }
     }
 
-    // [NOVO] Função para disparar som para TODOS via Firebase
+    // 2. Disparar som para TODOS (via Firebase)
     function triggerSound(soundId) {
-        db.ref('gameState/lastSFX').set({
-            id: soundId,
-            timestamp: Date.now() // Usa o tempo para garantir que é um som novo
-        });
+      db.ref('gameState/lastSFX').set({
+        id: soundId,
+        timestamp: Date.now()
+      });
     }
 
-    // =======================================================
-    // === 2. CONSTANTES E VARIÁVEIS GLOBAIS ===
-    // =======================================================
-
-    // [CORREÇÃO] Lista de TODAS as 10 cartas
     const CARD_TYPES = [
       { type: 'duque', color: '#f6b04d' },
       { type: 'capitao', color: '#ff3b3b' },
@@ -1160,15 +1158,13 @@
       { type: 'embaixador', color: '#49f0ff' },
       { type: 'condessa', color: '#ffb000' },
       { type: 'inquisidor', color: '#2a8cff' },
-      // peronagens promo
       { type: 'benfeitor', color: '#C0C0C0' },
       { type: 'bufao', color: '#FF69B4' },
       { type: 'burgues', color: '#800080' },
       { type: 'burocrata', color: '#A52A2A' },
-      // --- personagens originais ---
+      // --- Adicionadas abaixo ---
       { type: 'vigilante', color: '#FFFFFF' },
       { type: 'mercenario', color: '#FFFFFF' },
-      { type: 'guardiao-real', color: '#FFFFFF' },
       { type: 'purificador', color: '#FFFFFF' },
       { type: 'tesoureiro_da_coroa', color: '#FFFFFF' },
       { type: 'diplomata', color: '#FFFFFF' },
@@ -1178,73 +1174,36 @@
       { type: 'camaleao', color: '#FFFFFF' }
     ];
 
-    // O estado local é um "espelho" do que está no Firebase
     let localGameState = {};
     let myPlayerId = null;
-    let isDrawingCard = false; // Trava para cliques rápidos no deck]
-    
-    // [NOVO] Variável para rastrear o último som tocado e evitar repetições
-    let lastSoundTimestamp = Date.now();
+    let isDrawingCard = false;
+    let lastSoundTimestamp = 0; // Controle para não repetir sons antigos
 
-    // Referências do DOM
+    // DOM References
     const deckCountEl = document.getElementById('deck-count');
     const graveCountEl = document.getElementById('grave-count');
     const deckEl = document.getElementById('deck');
     const freeArea = document.getElementById('freeArea');
     const shuffleBtn = document.getElementById('shuffleBtn');
     const resetBtn = document.getElementById('resetBtn');
-
-    // [NOVO] Referências do Asilo
     const asylumScoreEl = document.getElementById('asylum-score');
     const asylumPlusBtn = document.getElementById('asylum-plus');
     const asylumMinusBtn = document.getElementById('asylum-minus');
 
-    function initializeGame() {
-      // ... (código de session storage existente) ...
-
-      if (!firebaseConfig.apiKey) return;
-
-      gameStateRef.on('value', (snapshot) => {
-        const state = snapshot.val();
-        if (state) {
-          
-          // === [NOVO] Lógica de Sincronização de Som ===
-          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
-              lastSoundTimestamp = state.lastSFX.timestamp; // Atualiza o tempo
-              playSound(state.lastSFX.id); // Toca o som localmente
-          }
-          // ============================================
-
-          localGameState = state;
-          renderAll();
-        }
-      });
-
-      findAndOccupySlot();
-      setupUI();
-      setupDropzones();
-      setupAutoScroll();
-    }
 
     // =======================================================
-    // === 3. FUNÇÕES DE CRIAÇÃO E MANIPULAÇÃO DO JOGO (LÓGICA) ===
+    // === 3. FUNÇÕES LÓGICAS DO JOGO ===
     // =======================================================
 
-    // [CORREÇÃO] createDeck agora lê a configuração passada
-    function createDeck(config) { // <-- Aceita config
+    function createDeck(config) {
       let newDeck = [];
       let id = 1;
 
-      if (!config) {
-        console.error("Configuração do Deck (deckConfig) não encontrada! Usando padrão.");
-        config = createDefaultDeckConfig();
-      }
+      if (!config) config = createDefaultDeckConfig();
 
-      // Loop pela config, não pelo CARD_TYPES
       for (const cardType in config) {
         const quantity = config[cardType];
-        const cardInfo = CARD_TYPES.find(c => c.type === cardType); // Encontra a info da carta (cor)
-
+        const cardInfo = CARD_TYPES.find(c => c.type === cardType);
         if (cardInfo && quantity > 0) {
           for (let i = 0; i < quantity; i++) {
             newDeck.push({
@@ -1258,7 +1217,6 @@
           }
         }
       }
-
       shuffle(newDeck);
       return newDeck;
     }
@@ -1270,7 +1228,6 @@
       }
     }
 
-    // Encontra uma carta dentro do objeto de estado do jogo
     function findCardById(state, id) {
       if (!state || !id) return null;
       let card = state.deck?.find(c => c.id === id);
@@ -1279,7 +1236,6 @@
       if (card) return card;
       card = state.grave?.find(c => c.id === id);
       if (card) return card;
-
       for (let p = 1; p <= 8; p++) {
         card = state.players?.[p]?.hand?.find(c => c.id === id);
         if (card) return card;
@@ -1287,13 +1243,11 @@
       return null;
     }
 
-    // Remove uma carta de qualquer lugar em um objeto de estado
     function removeCardFromLocation(state, cardId) {
       if (!state || !cardId) return;
       if (state.deck) state.deck = state.deck.filter(c => c.id !== cardId);
       if (state.freeCards) state.freeCards = state.freeCards.filter(c => c.id !== cardId);
       if (state.grave) state.grave = state.grave.filter(c => c.id !== cardId);
-
       if (state.players) {
         for (let p = 1; p <= 8; p++) {
           if (state.players[p]?.hand) {
@@ -1303,19 +1257,26 @@
       }
     }
 
+    function createDefaultDeckConfig() {
+      return {
+        'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
+        'inquisidor': 3, 'benfeitor': 3, 'bufao': 3, 'burgues': 3, 'burocrata': 3,
+        'vigilante': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
+        'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
+      };
+    }
+
+
     // =======================================================
-    // === 4. FUNÇÕES DE RENDERIZAÇÃO (ATUALIZAR A TELA) ===
+    // === 4. RENDERIZAÇÃO ===
     // =======================================================
 
     function clearDOM() {
       document.querySelectorAll('[data-hand]').forEach(h => h.innerHTML = '');
       freeArea.querySelectorAll('.card').forEach(n => n.remove());
       document.querySelectorAll('.slot').forEach(n => n.remove());
-      document.querySelectorAll('.player-area.local-player')
-        .forEach(el => el.classList.remove('local-player'));
-      // Limpa o destaque de turno antes de redesenhar
-      document.querySelectorAll('.player-area.active-turn')
-        .forEach(el => el.classList.remove('active-turn'));
+      document.querySelectorAll('.player-area.local-player').forEach(el => el.classList.remove('local-player'));
+      document.querySelectorAll('.player-area.active-turn').forEach(el => el.classList.remove('active-turn'));
     }
 
     function createCardElement(card) {
@@ -1327,7 +1288,7 @@
       if (shouldShowBack(card)) {
         el.classList.add('back');
       } else {
-        const imageUrl = `./img/${card.type.toLowerCase()}.png`; // Ex: ./img/duque.png
+        const imageUrl = `./img/${card.type.toLowerCase()}.png`;
         el.style.backgroundImage = `url('${imageUrl}')`;
       }
 
@@ -1351,7 +1312,6 @@
       return false;
     }
 
-    // A função de renderização principal
     function renderAll() {
       const state = localGameState;
       if (!state || !state.players) return;
@@ -1359,19 +1319,11 @@
       clearDOM();
 
       for (let pid = 1; pid <= 8; pid++) {
-
         const playerEl = document.getElementById(`player-${pid}`);
         if (!playerEl) continue;
 
         const player = state.players[pid] || { online: false, hand: [], score: 0, religion: 'catolico' };
 
-        /* [REMOVIDO]
-        if (state.turn === pid) {
-            playerEl.classList.add('active-turn');
-        }
-        */
-
-        // LÓGICA DE MOSTRAR/OCULTAR
         if (player.online) {
           playerEl.style.display = 'flex';
         } else {
@@ -1380,12 +1332,11 @@
         }
 
         const handContainer = document.querySelector(`#player-${pid} [data-hand]`);
-
         if (pid === myPlayerId) {
           playerEl.classList.add('local-player');
         }
 
-        // [NOVO] Renderiza o status da Religião
+        // Religião
         const religionEl = playerEl.querySelector('.religion-status');
         if (religionEl) {
           if (player.religion === 'protestante') {
@@ -1399,138 +1350,103 @@
           }
         }
 
-        // 1. Renderiza os slots que TÊM cartas
+        // Cartas e Slots
         player.hand?.forEach((card) => {
           const slot = document.createElement('div');
           slot.className = 'slot small';
-
           const el = createCardElement(card);
           el.classList.add('small');
-
           slot.appendChild(el);
           handContainer.appendChild(slot);
         });
 
-        // 2. Se a mão estiver vazia, mostra UM slot vazio
         if (!player.hand || player.hand.length === 0) {
           const slot = document.createElement('div');
           slot.className = 'slot small';
           handContainer.appendChild(slot);
         }
 
-        // Atualiza pontuação
+        // Score
         const scoreEl = document.querySelector(`#player-${pid} .score`);
         scoreEl.textContent = player.score || 0;
       }
 
-      // Renderiza cartas da área livre
+      // Área Livre
       state.freeCards?.forEach(card => {
         const el = createCardElement(card);
         el.classList.add('small');
         freeArea.appendChild(el);
       });
 
-      // Atualiza contadores
+      // Contadores
       deckCountEl.textContent = state.deck?.length || 0;
-      if (graveCountEl) {
-        graveCountEl.textContent = state.grave?.length || 0;
-      }
+      if (asylumScoreEl) asylumScoreEl.textContent = state.asylumScore || 0;
 
-      // [NOVO] Atualiza contador do Asilo
-      if (asylumScoreEl) {
-        asylumScoreEl.textContent = state.asylumScore || 0;
-      }
-
-      // [NOVO] Sincroniza a UI de Configuração do Deck
+      // Sync Config Modal Inputs
       if (state.deckConfig) {
         for (const cardType in state.deckConfig) {
           const input = document.getElementById(`config-${cardType}`);
-          if (input) {
-            input.value = state.deckConfig[cardType];
-          }
+          if (input) input.value = state.deckConfig[cardType];
         }
       }
     }
 
+
     // =======================================================
-    // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
+    // === 5. AÇÕES (COM TRIGGER SOUND) ===
     // =======================================================
 
-    // [CORREÇÃO] Função com trava de clique
     function drawCard() {
       if (!myPlayerId) return;
-
-      if (isDrawingCard) {
-        console.log("Aguarde, comprando carta...");
-        return;
-      }
+      if (isDrawingCard) { console.log("Aguarde..."); return; }
+      
       isDrawingCard = true;
-      triggerSound('card-slide'); // <--- ADICIONE AQUI (Som de deslizar carta)
+      triggerSound('card-slide'); // [SOM GLOBAL]
 
       gameStateRef.transaction((currentState) => {
-        if (!currentState) {
-          isDrawingCard = false; // [FIX] Libera a trava
-          return;
+        if (!currentState || !currentState.deck || currentState.deck.length === 0) {
+          isDrawingCard = false;
+          return currentState;
         }
-
-        if (!currentState.deck || currentState.deck.length === 0) {
-          console.log("Deck vazio.");
-          isDrawingCard = false; // [FIX] Libera a trava
-          return;
-        }
-
         const card = currentState.deck.pop();
         card.owner = myPlayerId;
         card.location = 'player-' + myPlayerId;
         card.visible = false;
 
-        if (!currentState.players[myPlayerId].hand) {
-          currentState.players[myPlayerId].hand = [];
-        }
+        if (!currentState.players[myPlayerId].hand) currentState.players[myPlayerId].hand = [];
         currentState.players[myPlayerId].hand.push(card);
 
         return currentState;
-      },
-        (error, committed, snapshot) => {
-          if (error) {
-            console.error("Falha ao comprar carta:", error);
-          }
-          // Destrava a função, com sucesso ou falha
-          isDrawingCard = false;
-        });
+      }, (error, committed) => {
+        isDrawingCard = false;
+      });
     }
 
-
     function returnCardToDeck(cardId) {
-      triggerSound('shuffle'); // <--- ADICIONE AQUI (Som de embaralhar/devolver)
+      triggerSound('shuffle'); // [SOM GLOBAL]
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
-
         const card = findCardById(currentState, cardId);
         if (!card) return currentState;
 
         removeCardFromLocation(currentState, cardId);
-
         card.owner = null;
         card.location = 'deck';
         card.visible = false;
         if (!currentState.deck) currentState.deck = [];
         currentState.deck.push(card);
-
         shuffle(currentState.deck);
-
         return currentState;
       });
     }
 
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
-
-      if (targetLocation === 'free') triggerSound('card-place'); // Som de colocar na mesa (cemitério)
-      if (targetLocation === 'deck') triggerSound('shuffle');    // Som de devolver ao deck
+      // [SONS GLOBAIS DE ARRASTAR]
+      if (targetLocation === 'free') triggerSound('card-place');
+      if (targetLocation === 'deck') triggerSound('shuffle');
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
-
         const card = findCardById(currentState, cardId);
         if (!card) return currentState;
 
@@ -1539,20 +1455,16 @@
           card.owner = targetPlayerId;
           card.location = 'player-' + targetPlayerId;
           card.visible = false;
-          if (!currentState.players[targetPlayerId].hand) {
-            currentState.players[targetPlayerId].hand = [];
-          }
+          if (!currentState.players[targetPlayerId].hand) currentState.players[targetPlayerId].hand = [];
           currentState.players[targetPlayerId].hand.push(card);
-        }
-        else if (targetLocation === 'free') {
+        } else if (targetLocation === 'free') {
           removeCardFromLocation(currentState, cardId);
           card.owner = null;
           card.location = 'free';
           card.visible = true;
           if (!currentState.freeCards) currentState.freeCards = [];
           currentState.freeCards.push(card);
-        }
-        else if (targetLocation === 'deck') {
+        } else if (targetLocation === 'deck') {
           removeCardFromLocation(currentState, cardId);
           card.owner = null;
           card.location = 'deck';
@@ -1561,34 +1473,23 @@
           currentState.deck.push(card);
           shuffle(currentState.deck);
         }
-
         return currentState;
       });
     }
 
-    // [NOVA FUNÇÃO] KICK PLAYER
     function kickPlayer(pid) {
-      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) {
-        return;
-      }
-
-      // 1. Remove a persistência local (se for o próprio jogador)
+      if (!confirm(`Tem certeza que deseja remover o Jogador ${pid}?`)) return;
       if (pid === myPlayerId) {
-        sessionStorage.removeItem('myPlayerId'); // [CORREÇÃO] Usando sessionStorage
-        myPlayerId = null; // Zera a ID local
+        sessionStorage.removeItem('myPlayerId');
+        myPlayerId = null;
         alert('Você foi removido da sala e seu slot está liberado.');
       }
-
-      // 2. Atualiza o Firebase para 'online: false'
-      db.ref(`gameState/players/${pid}`).update({
-        online: false
-      });
+      db.ref(`gameState/players/${pid}`).update({ online: false });
     }
 
     function updateScore(pid, amount) {
-      triggerSound('coin'); // <--- ADICIONE AQUI
+      triggerSound('coin'); // [SOM GLOBAL]
       const scoreRef = db.ref(`gameState/players/${pid}/score`);
-
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
         if (newScore < 0) newScore = 0;
@@ -1596,10 +1497,8 @@
       });
     }
 
-    // [NOVO] Função para o contador do Asilo
     function updateAsylumScore(amount) {
-      triggerSound('coin'); // <--- ADICIONE AQUI
-
+      triggerSound('coin'); // [SOM GLOBAL]
       const scoreRef = db.ref('gameState/asylumScore');
       scoreRef.once('value', (snapshot) => {
         let newScore = (snapshot.val() || 0) + amount;
@@ -1608,52 +1507,45 @@
       });
     }
 
-    // [NOVO] Função para trocar religião
     function toggleReligion(pid) {
-      triggerSound('paper'); // <--- ADICIONE AQUI
+      triggerSound('paper'); // [SOM GLOBAL]
       const religionRef = db.ref(`gameState/players/${pid}/religion`);
       religionRef.transaction((currentReligion) => {
         return (currentReligion === 'catolico') ? 'protestante' : 'catolico';
       });
     }
 
-    // [CORREÇÃO] resetTable agora aceita um argumento
     function resetTable(newConfig = null) {
-      console.log("Resetando a mesa...");
-
-      // Se uma nova config foi passada (pelo botão Aplicar), usa ela.
-      // Se não (pelo botão Resetar), usa a que está salva.
+      triggerSound('shuffle'); // [SOM GLOBAL]
       const configToUse = newConfig || localGameState.deckConfig || createDefaultDeckConfig();
-
-      let newDeck = createDeck(configToUse); // <-- Passa a config para createDeck
-
+      let newDeck = createDeck(configToUse);
       let currentPlayers = localGameState.players || {};
 
-      let newPlayersState = {
-        1: { online: currentPlayers[1]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        2: { online: currentPlayers[2]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        3: { online: currentPlayers[3]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        4: { online: currentPlayers[4]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        5: { online: currentPlayers[5]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        6: { online: currentPlayers[6]?.online || false, hand: [], score: 2, religion: 'protestante' },
-        7: { online: currentPlayers[7]?.online || false, hand: [], score: 2, religion: 'catolico' },
-        8: { online: currentPlayers[8]?.online || false, hand: [], score: 2, religion: 'protestante' },
-      };
+      let newPlayersState = {};
+      // Preserva status online e religião ao resetar
+      for (let i = 1; i <= 8; i++) {
+        const isOnline = currentPlayers[i]?.online || false;
+        newPlayersState[i] = {
+          online: isOnline,
+          hand: [],
+          score: 2,
+          religion: (i % 2 === 1) ? 'catolico' : 'protestante'
+        };
+      }
 
       let initialState = {
         deck: newDeck,
         grave: [],
         freeCards: [],
-        asylumScore: 0, // [NOVO]
-        deckConfig: configToUse, // Salva a config usada
-        // turn: 1, // [REMOVIDO]
+        asylumScore: 0,
+        deckConfig: configToUse,
         players: newPlayersState
       };
-
       gameStateRef.set(initialState);
     }
 
     function shuffleDeck() {
+      triggerSound('shuffle'); // [SOM GLOBAL]
       gameStateRef.transaction((currentState) => {
         if (currentState && currentState.deck) {
           shuffle(currentState.deck);
@@ -1662,19 +1554,9 @@
       });
     }
 
-    // [FUNÇÃO NOVA]
-    function createDefaultDeckConfig() {
-      return {
-        'duque': 5, 'capitao': 5, 'assassino': 5, 'embaixador': 5, 'condessa': 5,
-        'inquisidor': 5, 'benfeitor': 0, 'bufao': 0, 'burgues': 0, 'burocrata': 0,
-
-        'vigilante': 0, 'guardiao_real': 0, 'mercenario': 0, 'purificador': 0, 'tesoureiro_da_coroa': 0,
-        'diplomata': 0, 'marionetista': 0, 'contador_real': 0, 'contrabandista': 0, 'camaleao': 0
-      };
-    }
 
     // =======================================================
-    // === 6. SETUP DE EVENTOS E INICIALIZAÇÃO ===
+    // === 6. CONFIGURAÇÃO DE UI E EVENTOS LOCAIS ===
     // =======================================================
 
     function setupDropzones() {
@@ -1705,268 +1587,195 @@
     }
 
     function setupUI() {
-      // Botões de controle
+      // Botões Controle
       shuffleBtn.onclick = shuffleDeck;
-      resetBtn.onclick = () => resetTable(); // Chama sem argumentos
+      resetBtn.onclick = () => resetTable();
 
-      // === LÓGICA DA MÚSICA E VOLUME ===
+      // === MÚSICA & SOM (LOCAL) ===
       const musicBtn = document.getElementById('musicBtn');
       const bgmAudio = document.getElementById('bgmAudio');
-      const volumeSlider = document.getElementById('volumeSlider');
 
-      // Define o volume inicial
-      if (bgmAudio) {
-        bgmAudio.volume = 0.1; // 30%
-      }
+      if (bgmAudio) bgmAudio.volume = 0.3;
 
-      // Lógica do Slider de Volume
-      if (volumeSlider && bgmAudio) {
-        // Sincroniza o slider com o volume inicial
-        volumeSlider.value = bgmAudio.volume;
-
-        volumeSlider.addEventListener('input', (e) => {
-          const newVolume = e.target.value;
-          bgmAudio.volume = newVolume;
-        });
-      }
-
-
-      // Lógica do Botão Play/Pause
       if (musicBtn && bgmAudio) {
-
-        // [MODIFICADO] Tenta tocar a música imediatamente ao carregar
+        // Tenta autoplay
         bgmAudio.play().then(() => {
-          // Sucesso! O navegador permitiu. O botão fica normal (sem mute).
           musicBtn.classList.remove('muted');
-        }).catch(error => {
-          // Bloqueado! O navegador impediu o som automático.
-          // Deixamos o botão mutado visualmente até o jogador clicar.
-          console.log("Autoplay bloqueado (esperando interação):", error);
+        }).catch(() => {
           musicBtn.classList.add('muted');
         });
 
         musicBtn.onclick = () => {
           if (bgmAudio.paused) {
-            bgmAudio.play().then(() => {
-              musicBtn.classList.remove('muted');
-            }).catch(error => {
-              console.log("Reprodução de áudio bloqueada:", error);
-            });
+            bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
           } else {
             bgmAudio.pause();
             musicBtn.classList.add('muted');
           }
         };
       }
-      // === FIM DA LÓGICA DE MÚSICA ===
 
-
-      // LÓGICA DO MODAL DE INFO
+      // === MODAL DE INFO (IMAGENS .PNG) ===
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
       const closeModalBtn = document.getElementById('closeModalBtn');
-      const flipCard = document.querySelector('.flip-card'); // [NOVO] Referência à carta
-
-      // Referências às imagens dentro do card
+      const flipCard = document.querySelector('.flip-card');
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
 
-      // Lista das 3 imagens (Ciclo: Base -> DLC -> Turno)
-      // [IMPORTANTE]: Certifique-se de que 'dlc-actions.jpg' existe na pasta img!
+      // [CORREÇÃO] Extensão .png
       const ruleImages = [
-        'img/front-actions.png', // 1. Ações Base (Início)
-        'img/dlc-actions.png',   // 2. Ações DLC
-        'img/back-actions.png'   // 3. Ações Turno
+        'img/front-actions.png',
+        'img/dlc-actions.png',
+        'img/back-actions.png'
       ];
+      let currentRuleIndex = 0;
 
-      // Controla qual imagem da lista estamos vendo atualmente (0, 1 ou 2)
-      let currentRuleIndex = 0; 
-
-      if (infoBtn && infoModal && closeModalBtn && flipCard) {
-        
-        // Ao abrir, reseta para o estado inicial
+      if (infoBtn && infoModal) {
         infoBtn.onclick = () => {
-          playSound('click');
+          playSound('click'); // Som Local
           infoModal.style.display = 'flex';
-          
-          // Reseta tudo para a primeira imagem
-          currentRuleIndex = 0;
-          flipCard.classList.remove('is-flipped');
-          frontImg.src = ruleImages[0];
-          backImg.src = ruleImages[1]; // Já deixa a próxima preparada atrás
+          if (flipCard) {
+            currentRuleIndex = 0;
+            flipCard.classList.remove('is-flipped');
+            frontImg.src = ruleImages[0];
+            backImg.src = ruleImages[1];
+          }
         };
-
-        // Fechar Modal
-        const closeModal = () => {
-            playSound('click');
-            infoModal.style.display = 'none';
+        closeModalBtn.onclick = () => {
+          playSound('click'); // Som Local
+          infoModal.style.display = 'none';
         };
-        closeModalBtn.onclick = closeModal;
         infoModal.onclick = (e) => {
-          if (e.target === infoModal) closeModal();
+          if (e.target === infoModal) infoModal.style.display = 'none';
         };
 
-        // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
-        flipCard.onclick = () => {
-            playSound('card-slide');
-            
-            // 1. Gira a carta
+        if (flipCard) {
+          flipCard.onclick = () => {
+            playSound('card-slide'); // Som Local
             flipCard.classList.toggle('is-flipped');
-            
-            // 2. Avança o índice para a próxima "página"
             currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
-            
-            // 3. Prepara a imagem oculta para o próximo giro
-            // Espera 200ms (metade do giro) para trocar a imagem de trás sem o usuário ver
             setTimeout(() => {
-                const nextImageIndex = (currentRuleIndex + 1) % ruleImages.length;
-                
-                if (flipCard.classList.contains('is-flipped')) {
-                    // Estamos vendo o Verso. Vamos mudar a Frente (que está escondida) para a próxima.
-                    frontImg.src = ruleImages[nextImageIndex];
-                } else {
-                    // Estamos vendo a Frente. Vamos mudar o Verso (que está escondido) para a próxima.
-                    backImg.src = ruleImages[nextImageIndex];
-                }
-            }, 500); // 500ms = metade do tempo da transição CSS (1s)
-        };
+              const nextIndex = (currentRuleIndex + 1) % ruleImages.length;
+              if (flipCard.classList.contains('is-flipped')) {
+                frontImg.src = ruleImages[nextIndex];
+              } else {
+                backImg.src = ruleImages[nextIndex];
+              }
+            }, 500);
+          };
+        }
       }
 
-      // [NOVO] LÓGICA DO CONTADOR DO ASILO
-      if (asylumPlusBtn && asylumMinusBtn) {
-        asylumPlusBtn.onclick = () => updateAsylumScore(1);
-        asylumMinusBtn.onclick = () => updateAsylumScore(-1);
-      }
-
-      // [NOVO] LÓGICA DO MODAL DE CONFIGURAÇÃO
+      // === MODAL DE CONFIG ===
       const configBtn = document.getElementById('configBtn');
       const configModal = document.getElementById('configModal');
-      const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-      const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
+      const closeConfigBtn = document.getElementById('closeConfigModalBtn');
+      const applyBtn = document.getElementById('applyDeckConfigBtn');
       const configInputs = document.querySelectorAll('.card-config-item input');
 
-      if (configBtn && configModal && closeConfigModalBtn) {
-
-        playSound('click'); // <--- ADICIONE AQUI
-        configBtn.onclick = () => { configModal.style.display = 'flex'; };
-
-        playSound('click'); // <--- ADICIONE AQUI
-        closeConfigModalBtn.onclick = () => { configModal.style.display = 'none'; };
+      if (configBtn) {
+        configBtn.onclick = () => { playSound('click'); configModal.style.display = 'flex'; };
+        closeConfigBtn.onclick = () => { playSound('click'); configModal.style.display = 'none'; };
       }
 
-      // Lógica dos Inputs (apenas desabilitar)
+      // Só Host edita
       configInputs.forEach(input => {
-        if (myPlayerId !== 1) {
-          input.disabled = true;
-        }
+        if (myPlayerId !== 1) input.disabled = true;
       });
 
-      // [NOVA LÓGICA] Botão Aplicar
-      if (applyDeckConfigBtn) {
+      if (applyBtn) {
         if (myPlayerId !== 1) {
-          applyDeckConfigBtn.disabled = true;
-          applyDeckConfigBtn.style.background = '#555';
-          applyDeckConfigBtn.textContent = 'Apenas o Host (Jogador 1) pode aplicar';
+          applyBtn.disabled = true;
+          applyBtn.style.background = '#555';
+          applyBtn.textContent = 'Apenas o Host pode aplicar';
         } else {
-          applyDeckConfigBtn.onclick = () => {
-            playSound('click'); // <--- ADICIONE AQUI
-            // 1. Monta o objeto de configuração
+          applyBtn.onclick = () => {
+            playSound('click');
             const newConfig = {};
             configInputs.forEach(input => {
-              const cardType = input.dataset.card;
-              let quantity = parseInt(input.value);
-              if (isNaN(quantity) || quantity < 0) quantity = 0;
-              if (quantity > 10) quantity = 10;
-              input.value = quantity; // Corrige a UI
-              newConfig[cardType] = quantity;
+              let val = parseInt(input.value);
+              if (isNaN(val) || val < 0) val = 0;
+              if (val > 10) val = 10;
+              newConfig[input.dataset.card] = val;
             });
-
-            console.log("Aplicando nova configuração e resetando...", newConfig);
-
-            // 2. Chama o reset passando a nova config
             resetTable(newConfig);
-
-            // 3. Fecha o modal
             configModal.style.display = 'none';
           };
         }
       }
 
-
-      // Controles de pontos +/- e NOVO BOTÃO DE REMOVER
+      // Listeners de Jogadores
       document.querySelectorAll('.player-area').forEach(area => {
         const pid = parseInt(area.dataset.player);
-
-        // Listener para remover (kick) o jogador
         const removeBtn = area.querySelector('.remove-player');
-        if (removeBtn) {
-          removeBtn.addEventListener('click', () => {
-            kickPlayer(pid);
-          });
-        }
+        if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
 
-        // [NOVO] Listener para trocar religião
         const religionEl = area.querySelector('.religion-status');
-        if (religionEl) {
-          religionEl.addEventListener('click', () => {
-            toggleReligion(pid);
-          });
-        }
+        if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
 
-        // Listeners Plus/Minus
         area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
         area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
       });
+
+      // Listeners Asilo
+      if (asylumPlusBtn) asylumPlusBtn.onclick = () => updateAsylumScore(1);
+      if (asylumMinusBtn) asylumMinusBtn.onclick = () => updateAsylumScore(-1);
     }
 
-    // [CORREÇÃO] Usando sessionStorage para persistência por ABA
-    // Lógica de "Entrar na Sala"
+    // [NOVO] Auto Scroll
+    function setupAutoScroll() {
+      const threshold = 80;
+      const speed = 15;
+      window.addEventListener('dragover', (e) => {
+        if (e.clientY < threshold) window.scrollBy(0, -speed);
+        else if (e.clientY > (window.innerHeight - threshold)) window.scrollBy(0, speed);
+      });
+    }
+
+
+    // =======================================================
+    // === 7. CONEXÃO E LOOP PRINCIPAL ===
+    // =======================================================
+
     function findAndOccupySlot() {
-      const myPersistedId = sessionStorage.getItem('myPlayerId'); // <-- MUDADO para sessionStorage
+      const myPersistedId = sessionStorage.getItem('myPlayerId'); // SessionStorage!
 
-      // Tenta re-ocupar o slot primeiro (Persistência)
       if (myPersistedId) {
-        gameStateRef.transaction((currentState) => {
-          if (!currentState || !currentState.players) return;
-
+        gameStateRef.transaction((curr) => {
+          if (!curr || !curr.players) return;
           const pid = parseInt(myPersistedId);
-
-          if (currentState.players[pid] && !currentState.players[pid].online) {
-            currentState.players[pid].online = true;
+          if (curr.players[pid] && !curr.players[pid].online) {
+            curr.players[pid].online = true;
             myPlayerId = pid;
-            return currentState;
+            return curr;
           }
-
-          sessionStorage.removeItem('myPlayerId'); // <-- MUDADO para sessionStorage
+          sessionStorage.removeItem('myPlayerId');
           return;
-        }, (error, committed, snapshot) => {
+        }, (err, committed) => {
           if (committed) {
-            console.log(`Reclamei o slot persistido: Jogador ${myPlayerId}`);
+            console.log(`Reconectado: Jogador ${myPlayerId}`);
             setupDisconnectHandler(myPlayerId);
-            return;
+          } else {
+            findNewSlot();
           }
-          findNewSlot();
         });
       } else {
         findNewSlot();
       }
     }
 
-    // Função separada para lidar com a busca e o claim atômico
     function findNewSlot() {
-      gameStateRef.transaction((currentState) => {
-        if (!currentState || !currentState.players) {
-          // Criação inicial da sala (JOGADOR 1)
-          const defaultConfig = createDefaultDeckConfig(); // [NOVO]
-          let newDeck = createDeck(defaultConfig); // [NOVO]
-
-          let initialState = {
-            deck: newDeck,
+      gameStateRef.transaction((curr) => {
+        if (!curr || !curr.players) {
+          // Cria novo jogo
+          const defaultConfig = createDefaultDeckConfig();
+          return {
+            deck: createDeck(defaultConfig),
             grave: [],
             freeCards: [],
-            asylumScore: 0, // [NOVO]
-            deckConfig: defaultConfig, // [NOVO]
-            // turn: 1, // [REMOVIDO]
+            asylumScore: 0,
+            deckConfig: defaultConfig,
             players: {
               1: { hand: [], score: 2, online: true, religion: 'catolico' },
               2: { hand: [], score: 2, online: false, religion: 'protestante' },
@@ -1978,87 +1787,47 @@
               8: { hand: [], score: 2, online: false, religion: 'protestante' },
             }
           };
-          myPlayerId = 1;
-          sessionStorage.setItem('myPlayerId', 1); // <-- MUDADO para sessionStorage
-          return initialState;
         }
-
-        // Busca um slot vazio (online: false)
+        // Busca slot vazio
         for (let i = 1; i <= 8; i++) {
-          if (!currentState.players[i] || !currentState.players[i].online) {
-            // Ocupa o slot atomicamente
-            currentState.players[i] = currentState.players[i] || {};
-            currentState.players[i].online = true;
-            currentState.players[i].score = currentState.players[i].score || 2;
-            currentState.players[i].hand = currentState.players[i].hand || [];
-            currentState.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
+          if (!curr.players[i].online) {
+            curr.players[i].online = true;
+            curr.players[i].score = 2;
+            curr.players[i].hand = [];
+            curr.players[i].religion = (i % 2 === 1) ? 'catolico' : 'protestante';
             myPlayerId = i;
-            sessionStorage.setItem('myPlayerId', i); // <-- MUDADO para sessionStorage
-            return currentState;
+            sessionStorage.setItem('myPlayerId', i);
+            return curr;
           }
         }
-
-        // Sala cheia, não pode entrar
-        return;
-      }, (error, committed, snapshot) => {
+        return; // Cheio
+      }, (err, committed) => {
         if (committed) {
-          console.log(`Entrei com sucesso: Jogador ${myPlayerId}`);
-          setupDisconnectHandler(myPlayerId);
-        } else if (error) {
-          console.error("Erro na transação:", error);
-          alert("Erro de conexão ao entrar na sala. Tente novamente.");
-        } else {
-          alert("Sala cheia! (Máx 8 jogadores)");
-          document.body.innerHTML = "<h1>Sala cheia. Tente novamente mais tarde.</h1>";
+           // Caso especial: se criou o jogo agora, myPlayerId é 1 mas não foi setado no loop
+           if (!myPlayerId) { myPlayerId = 1; sessionStorage.setItem('myPlayerId', 1); }
+           console.log(`Entrei: Jogador ${myPlayerId}`);
+           setupDisconnectHandler(myPlayerId);
+        } else if (!err) {
+           alert("Sala cheia!");
         }
       });
     }
-
-    // Handler para quando o jogador fechar a aba
-    function setupDisconnectHandler(pid) {
-      const playerRef = db.ref(`gameState/players/${pid}`);
-      playerRef.onDisconnect().update({
-        online: false
-      });
-    }
-
-
-    // [NOVO] Função de Auto-Scroll para facilitar o drag-and-drop
-    function setupAutoScroll() {
-      const threshold = 80; // Pixels da borda para ativar o scroll
-      const speed = 15;      // Velocidade de rolagem
-
-      window.addEventListener('dragover', (e) => {
-        // A posição Y do cursor/dedo
-        const y = e.clientY;
-        const viewportHeight = window.innerHeight;
-
-        // Se estiver perto do topo -> Rola para cima
-        if (y < threshold) {
-          window.scrollBy(0, -speed);
-        }
-        // Se estiver perto do fundo -> Rola para baixo
-        else if (y > (viewportHeight - threshold)) {
-          window.scrollBy(0, speed);
-        }
-      });
-    }
-
-    // =======================================================
-    // === 7. O "CORAÇÃO" DO JOGO (O Listener Principal) ===
-    // =======================================================
 
     function initializeGame() {
       const persistedId = sessionStorage.getItem('myPlayerId');
-      if (persistedId) {
-        myPlayerId = parseInt(persistedId);
-      }
+      if (persistedId) myPlayerId = parseInt(persistedId);
 
       if (!firebaseConfig.apiKey) return;
 
       gameStateRef.on('value', (snapshot) => {
         const state = snapshot.val();
         if (state) {
+          // [NOVO] Sincroniza SOM
+          if (state.lastSFX && state.lastSFX.timestamp > lastSoundTimestamp) {
+             lastSoundTimestamp = state.lastSFX.timestamp;
+             playSound(state.lastSFX.id);
+          }
+
           localGameState = state;
           renderAll();
         }
@@ -2067,11 +1836,9 @@
       findAndOccupySlot();
       setupUI();
       setupDropzones();
-
-      setupAutoScroll(); // <--- VOCÊ TINHA ESQUECIDO ESTA LINHA!
+      setupAutoScroll();
     }
 
-    // Inicia o jogo!
     initializeGame();
 
 
