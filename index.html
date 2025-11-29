@@ -751,12 +751,9 @@
     .flip-card-front img,
     .flip-card-back img {
       width: 100%;
-      height: 100%;
+      height: auto; /* A altura se ajusta sozinha */
       border-radius: 25px;
-      /* MUDANÇA AQUI: 'contain' garante que a imagem inteira apareça na melhor qualidade possível */
-      object-fit: contain; 
-      /* Opcional: ajuda a suavizar em alguns navegadores se a imagem for muito pequena */
-      image-rendering: -webkit-optimize-contrast;
+      object-fit: cover;
     }
 
     /* === [NOVO] ESTILOS DO MODAL DE CONFIGURAÇÃO === */
