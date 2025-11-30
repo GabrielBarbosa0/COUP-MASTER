@@ -43,7 +43,7 @@
 
     .container {
       max-width: 1100px;
-      margin: 18px auto;
+      margin: auto;
       padding: 12px;
     }
 
@@ -185,13 +185,12 @@
       gap: 18px;
     }
 
-    /* [CORREÇÃO] Container inferior com 3 colunas */
-    .bottom-table-container {
+    /* [NOVO] Wrapper para Asilo e Deck */
+    .decks-wrapper {
       display: grid;
-      grid-template-columns: 2fr 1fr 1fr;
-      /* Cemitério (2) | Asilo (1) | Deck (1) */
+      grid-template-columns: 1fr 1fr; /* Lado a lado */
       gap: 18px;
-      align-items: stretch;
+      margin-top: 18px;
     }
 
     /* Player areas labels (AJUSTADO) */
@@ -402,7 +401,7 @@
       border-radius: 12px;
       border: 3px dashed #ffffff1f;
       padding: 18px;
-      min-height: 200px;
+      min-height: 140px;
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
@@ -504,7 +503,7 @@
     .player-stack {
       display: grid;
       grid-template-columns: repeat(3, auto);
-      gap: 8px;
+      /* gap: 8px; */
       justify-content: center;
       align-items: center;
       padding: 6px;
@@ -607,7 +606,7 @@
       }
 
       .free-area {
-        min-height: 120px
+        min-height: 100px
       }
     }
 
@@ -653,6 +652,24 @@
         /* Garante que ele fique à direita no mobile */
         top: 4px;
       }
+
+      .bottom-table-container {
+        grid-template-columns: 1fr; /* Empilha: Cemitério em cima, Wrapper embaixo */
+        gap: 8px;
+      }
+
+      /* [NOVO] No mobile, mantém Asilo e Deck lado a lado! */
+      .decks-wrapper {
+        grid-template-columns: 1fr 1fr; 
+        gap: 8px;
+        margin-top: 8px;
+      }
+      
+      /* Opcional: Ajuste fino para caber melhor em telas pequenas */
+      .asylum-area, .deck-area {
+          padding: 10px; /* Menos padding no mobile */
+      }
+
     }
 
     /* === ESTILOS DO MODAL E FLIP-CARD === */
@@ -948,27 +965,30 @@
             </div>
           </div>
 
-          <div class="asylum-area" id="asylumArea">
-            <div class="muted">Asilo</div>
-            <div class="asylum-image">
+          <div class="decks-wrapper">
+            
+            <div class="asylum-area" id="asylumArea">
+              <div class="muted">Asilo</div>
+              <div class="asylum-image">
+                </div>
+              <div class="asylum-points">
+                <button id="asylum-minus" title="Remover Moeda do Asilo">-</button>
+                <div id="asylum-score" class="score">0</div>
+                <button id="asylum-plus" title="Adicionar Moeda ao Asilo">+</button>
+              </div>
             </div>
-            <div class="asylum-points">
-              <button id="asylum-minus" title="Remover Moeda do Asilo">-</button>
-              <div id="asylum-score" class="score">0</div>
-              <button id="asylum-plus" title="Adicionar Moeda ao Asilo">+</button>
-            </div>
-          </div>
-          <div class="deck-area" id="deck-area">
-            <div class="pile-info muted">
-            </div>
-            <div class="deck" id="deck" draggable="true">Deck</div>
-            <div class="pile-info muted">
-              <div>Cartas no deck: <span id="deck-count"></span><br>Clique para comprar</div>
 
+            <div class="deck-area" id="deck-area">
+              <div class="pile-info muted">
+              </div>
+              <div class="deck" id="deck" draggable="true">Deck</div>
+              <div class="pile-info muted">
+                <div>Cartas no deck: <span id="deck-count"></div>
+              </div>
             </div>
-          </div>
 
-        </div>
+          </div> 
+          </div>
       </div>
     </div>
   </div>
