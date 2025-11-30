@@ -1678,7 +1678,12 @@
     function setupUI() {
       // Botões de controle
       shuffleBtn.onclick = shuffleDeck;
-      resetBtn.onclick = () => resetTable(); // Chama sem argumentos
+      // [MODIFICADO] Confirmação antes de resetar
+      resetBtn.onclick = () => {
+        if (confirm("Tem certeza que deseja resetar a mesa? Isso reiniciará o jogo para todos os jogadores.")) {
+          resetTable();
+        }
+      };
 
       // === LÓGICA DA MÚSICA E VOLUME ===
       const musicBtn = document.getElementById('musicBtn');
@@ -1891,6 +1896,8 @@
       });
     }
 
+
+    
     // [CORREÇÃO] Usando sessionStorage para persistência por ABA
     // Lógica de "Entrar na Sala"
     function findAndOccupySlot() {
