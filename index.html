@@ -1113,13 +1113,12 @@
 
   <audio id="audio-coin" src="audio/coin.mp3"></audio>
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
-  <audio id="audio-card-place" src="audio/card-place.mp3"></audio>
+  <audio id="audio-knife" src="audio/knife.mp3"></audio>
   <audio id="audio-impact" src="audio/impact.mp3"></audio>
   <audio id="audio-8-bit-start" src="audio/8-bit-start.mp3"></audio>
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
-  <audio id="audio-air-woosh" src="audio/air-woosh.mp3"></audio>
 
 
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -1524,7 +1523,7 @@
     function moveCard(cardId, targetLocation, targetPlayerId = null) {
       // [CORREÇÃO] Sons para todas as ações de arrastar
       if (targetLocation === 'player') triggerSound('card-slide'); // <--- FALTAVA ESTE (Mover para mão)
-      if (targetLocation === 'free') triggerSound('card-place');   // Mover para cemitério
+      if (targetLocation === 'free') triggerSound('knife');   // Mover para cemitério
       if (targetLocation === 'deck') triggerSound('shuffle');      // Mover para deck
 
       gameStateRef.transaction((currentState) => {
@@ -1572,7 +1571,7 @@
       }
 
       // [NOVO] Toca o som para TODOS
-      triggerSound('audio-impact');
+      triggerSound('impact');
 
       // 1. Remove a persistência local (se for o próprio jogador)
       if (pid === myPlayerId) {
@@ -1622,7 +1621,7 @@
     // [CORREÇÃO] resetTable agora aceita um argumento
     function resetTable(newConfig = null) {
       console.log("Resetando a mesa...");
-      triggerSound('audio-8-bit-start'); // <--- ADICIONE ESTA LINHA NO INÍCIO
+      triggerSound('8-bit-start'); // <--- ADICIONE ESTA LINHA NO INÍCIO
 
       // Se uma nova config foi passada (pelo botão Aplicar), usa ela.
       // Se não (pelo botão Resetar), usa a que está salva.
@@ -1817,7 +1816,7 @@
 
         // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
         flipCard.onclick = () => {
-            playSound('audio-air-woosh');
+            playSound('card-slide');
             
             // 1. Gira a carta
             flipCard.classList.toggle('is-flipped');
