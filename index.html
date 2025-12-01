@@ -371,8 +371,8 @@
 
 
     .deck {
-      width: 76px;
-      height: 110px;
+      width: 72px;
+      height: 107px;
       border-radius: 10px;
       cursor: pointer;
 
@@ -580,8 +580,8 @@
       }
 
       .deck {
-        width: 76px;
-        height: 110px
+        width: 72px;
+        height: 107px
       }
 
       .card {
@@ -1450,39 +1450,44 @@
     // === 5. AÇÕES DO JOGADOR (ESCREVEM NO FIREBASE) ===
     // =======================================================
 
-    // [CORREÇÃO] Função com trava de clique
-    function drawCard() {
-      if (!myPlayerId) return;
-      if (isDrawingCard) return;
+
+    // [MODIFICADO] Agora aceita um ID de jogador alvo (opcional)
+    function drawCard(targetPid = null) {
+      // Se um alvo for passado (drag & drop), usa ele. Senão, usa o jogador local (clique).
+      const playerToReceive = targetPid || myPlayerId;
+
+      if (!playerToReceive) return; // Segurança
 
       if (isDrawingCard) {
         console.log("Aguarde, comprando carta...");
         return;
       }
       isDrawingCard = true;
-      triggerSound('card-slide'); // <--- MUDADO PARA TRIGGER (GLOBAL)
+      triggerSound('card-slide'); // Som Global
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) {
-          isDrawingCard = false; // [FIX] Libera a trava
+          isDrawingCard = false; 
           return;
         }
 
         if (!currentState.deck || currentState.deck.length === 0) {
           console.log("Deck vazio.");
-          isDrawingCard = false; // [FIX] Libera a trava
+          isDrawingCard = false; 
           return;
         }
 
         const card = currentState.deck.pop();
-        card.owner = myPlayerId;
-        card.location = 'player-' + myPlayerId;
+        
+        // Usa a variável playerToReceive em vez de myPlayerId fixo
+        card.owner = playerToReceive;
+        card.location = 'player-' + playerToReceive;
         card.visible = false;
 
-        if (!currentState.players[myPlayerId].hand) {
-          currentState.players[myPlayerId].hand = [];
+        if (!currentState.players[playerToReceive].hand) {
+          currentState.players[playerToReceive].hand = [];
         }
-        currentState.players[myPlayerId].hand.push(card);
+        currentState.players[playerToReceive].hand.push(card);
 
         return currentState;
       },
@@ -1490,7 +1495,6 @@
           if (error) {
             console.error("Falha ao comprar carta:", error);
           }
-          // Destrava a função, com sucesso ou falha
           isDrawingCard = false;
         });
     }
@@ -1678,21 +1682,38 @@
     // =======================================================
 
     function setupDropzones() {
+      // [NOVO] Configura o arrastar DO Deck
+      deckEl.addEventListener('dragstart', (e) => {
+          // Envia um código especial avisando que é uma compra
+          e.dataTransfer.setData('text/plain', 'DECK_DRAW_ACTION');
+      });
+
       deckEl.ondragover = ev => ev.preventDefault();
       deckEl.ondrop = ev => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
-        moveCard(id, 'deck');
+        // Evita erro se tentar arrastar o deck para ele mesmo
+        if (id !== 'DECK_DRAW_ACTION') {
+            moveCard(id, 'deck');
+        }
       };
-      deckEl.onclick = () => drawCard();
+      deckEl.onclick = () => drawCard(); // Clique normal (compra para mim)
 
       document.querySelectorAll('.player-area').forEach(area => {
         area.ondragover = ev => ev.preventDefault();
         area.ondrop = ev => {
           ev.preventDefault();
-          const id = ev.dataTransfer.getData('text/plain');
+          const data = ev.dataTransfer.getData('text/plain');
           const pid = parseInt(area.dataset.player);
-          moveCard(id, 'player', pid);
+
+          // [NOVO] Verifica se é uma compra (arrastou do Deck)
+          if (data === 'DECK_DRAW_ACTION') {
+              // Chama a função de comprar mandando o ID deste slot
+              drawCard(pid);
+          } else {
+              // Senão, é um movimento normal de carta (arrastou carta)
+              moveCard(data, 'player', pid);
+          }
         };
       });
 
@@ -1700,9 +1721,13 @@
       freeArea.ondrop = ev => {
         ev.preventDefault();
         const id = ev.dataTransfer.getData('text/plain');
-        moveCard(id, 'free');
+        if (id !== 'DECK_DRAW_ACTION') {
+             moveCard(id, 'free');
+        }
       };
     }
+
+
 
     function setupUI() {
       // Botões de controle
