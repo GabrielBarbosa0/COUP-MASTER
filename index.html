@@ -1115,6 +1115,7 @@
   <audio id="audio-paper" src="audio/paper.mp3"></audio>
   <audio id="audio-card-place" src="audio/card-place.mp3"></audio>
   <audio id="audio-impact" src="audio/impact.mp3"></audio>
+  <audio id="audio-8-bit-start" src="audio/8-bit-start.mp3"></audio>
   <audio id="audio-card-slide" src="audio/card-slide.mp3"></audio>
   <audio id="audio-shuffle" src="audio/shuffle.mp3"></audio>
   <audio id="audio-click" src="audio/click.mp3"></audio>
@@ -1523,6 +1524,9 @@
       // Sons globais dependendo de onde soltou
       if (targetLocation === 'free') triggerSound('card-place'); // Cemitério
       if (targetLocation === 'deck') triggerSound('shuffle');    // Devolver pro Deck
+
+      // [NOVO] Som ao arrastar carta para um jogador (do cemitério ou de outro player)
+      if (targetLocation === 'player') triggerSound('card-slide');
 
       gameStateRef.transaction((currentState) => {
         if (!currentState) return currentState;
