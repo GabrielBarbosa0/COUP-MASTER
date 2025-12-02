@@ -707,7 +707,46 @@
       border-radius: 10px;
     }
 
+    /* [NOVO] Estilos para o Modal de Configurações */
+    .settings-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        min-width: 250px;
+        padding: 10px;
+    }
 
+    .setting-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: var(--text);
+        font-size: 16px;
+    }
+
+    /* Estilo para botões com ícone dentro do menu */
+    .icon-btn {
+        background: #232a33;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: var(--text);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        transition: background 0.2s;
+    }
+    .icon-btn:hover {
+        background: #2c3540;
+    }
+    
+    /* Ajuste do Slider dentro do modal */
+    #volumeSlider {
+        accent-color: #1e90ff;
+        flex-grow: 1;
+        cursor: pointer;
+    }
 
     .close-btn {
       position: absolute;
@@ -849,14 +888,9 @@
           <button id="resetBtn" class="resetBtn" title="Resetar Mesa"><img src="img/cached.svg" alt=""></button>
         </div>
         <div class="controls">
-          <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="img/music_note.svg"
-              alt="Música"></button>
-          <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" title="Volume da Música">
-          <button id="shuffleBtn" class="shuffleBtn" title="Embaralhar Cartas"><img src="img/playing_cards.svg"
-              alt=""></button>
-          <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt=""></button>
-          <button id="configBtn" class="configBtn" title="Configurar Deck"><img src="img/settings_account.svg"
-              alt=""></button>
+          <button id="musicBtn" class="musicBtn" title="Música de Fundo"><img src="img/music_note.svg" alt="Música"></button>
+          <button id="infoBtn" class="infoBtn" title="Ver Ações"><img src="img/info.svg" alt="Ajuda"></button>
+          <button id="settingsBtn" class="configBtn" title="Configurações Gerais"><img src="img/settings.svg" alt="Configurações"></button>
         </div>
       </div>
 
@@ -1101,6 +1135,36 @@
         </li>
       </ul>
       <button id="applyDeckConfigBtn">Aplicar e Resetar Jogo</button>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <button id="closeSettingsBtn" class="close-btn">&times;</button>
+      <h2>Configurações</h2>
+      
+      <div class="settings-container">
+        
+        <div class="setting-row">
+            <label for="volumeSlider">Música:</label>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" style="width: 100%;">
+        </div>
+
+        <div class="setting-row">
+            <label>Interface:</label>
+            <button id="toggleHeaderBtn" class="icon-btn" title="Mostrar/Ocultar Título">
+                <img src="img/visibility.svg" alt="Ver" style="width: 24px; height: 24px;">
+                <span style="margin-left: 8px;">Título do Jogo</span>
+            </button>
+        </div>
+
+        <div class="setting-row" style="justify-content: center; margin-top: 20px;">
+             <button id="openDeckConfigBtn" style="background: #1e90ff; color: white; padding: 10px; border: 0; border-radius: 8px; cursor: pointer; width: 100%;">
+                Configurar Baralho
+             </button>
+        </div>
+
+      </div>
     </div>
   </div>
 
@@ -1730,226 +1794,192 @@
 
 
     function setupUI() {
-      // Botões de controle
-      shuffleBtn.onclick = shuffleDeck;
-      // [MODIFICADO] Confirmação antes de resetar
-      resetBtn.onclick = () => {
-        if (confirm("Tem certeza que deseja resetar a mesa? Isso reiniciará o jogo para todos os jogadores.")) {
-          resetTable();
-        }
-      };
+      // 1. Botões Básicos
+      const resetBtn = document.getElementById('resetBtn');
+      if(resetBtn) {
+          resetBtn.onclick = () => {
+            if (confirm("Tem certeza que deseja resetar a mesa?")) resetTable();
+          };
+      }
 
-      // === LÓGICA DA MÚSICA E VOLUME ===
+      // 2. Lógica de Música (Botão Mute)
       const musicBtn = document.getElementById('musicBtn');
       const bgmAudio = document.getElementById('bgmAudio');
-      const volumeSlider = document.getElementById('volumeSlider');
+      
+      if (bgmAudio) bgmAudio.volume = 0.1; // Volume inicial
 
-      // Define o volume inicial
-      if (bgmAudio) {
-        bgmAudio.volume = 0.1; // 30%
-      }
-
-      // Lógica do Slider de Volume
-      if (volumeSlider && bgmAudio) {
-        // Sincroniza o slider com o volume inicial
-        volumeSlider.value = bgmAudio.volume;
-
-        volumeSlider.addEventListener('input', (e) => {
-          const newVolume = e.target.value;
-          bgmAudio.volume = newVolume;
-        });
-      }
-
-
-      // Lógica do Botão Play/Pause
       if (musicBtn && bgmAudio) {
-
-        // [MODIFICADO] Tenta tocar a música imediatamente ao carregar
-        bgmAudio.play().then(() => {
-          // Sucesso! O navegador permitiu. O botão fica normal (sem mute).
-          musicBtn.classList.remove('muted');
-        }).catch(error => {
-          // Bloqueado! O navegador impediu o som automático.
-          // Deixamos o botão mutado visualmente até o jogador clicar.
-          console.log("Autoplay bloqueado (esperando interação):", error);
-          musicBtn.classList.add('muted');
-        });
+        bgmAudio.play().then(() => musicBtn.classList.remove('muted'))
+                       .catch(() => musicBtn.classList.add('muted'));
 
         musicBtn.onclick = () => {
           if (bgmAudio.paused) {
-            bgmAudio.play().then(() => {
-              musicBtn.classList.remove('muted');
-            }).catch(error => {
-              console.log("Reprodução de áudio bloqueada:", error);
-            });
+            bgmAudio.play().then(() => musicBtn.classList.remove('muted'));
           } else {
             bgmAudio.pause();
             musicBtn.classList.add('muted');
           }
         };
       }
-      // === FIM DA LÓGICA DE MÚSICA ===
+
+      // 3. MENU DE CONFIGURAÇÕES (Engrenagem)
+      const settingsBtn = document.getElementById('settingsBtn');
+      const settingsModal = document.getElementById('settingsModal');
+      const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const toggleHeaderBtn = document.getElementById('toggleHeaderBtn');
+      const openDeckConfigBtn = document.getElementById('openDeckConfigBtn');
+
+      if (settingsBtn && settingsModal && closeSettingsBtn) {
+          // Abrir Menu
+          settingsBtn.onclick = () => {
+              playSound('click');
+              settingsModal.style.display = 'flex';
+          };
+          // Fechar Menu
+          closeSettingsBtn.onclick = () => {
+              playSound('click');
+              settingsModal.style.display = 'none';
+          };
+      }
+
+      // 3.1 Slider de Volume (Agora dentro do modal)
+      if (volumeSlider && bgmAudio) {
+          volumeSlider.value = bgmAudio.volume;
+          volumeSlider.addEventListener('input', (e) => {
+              bgmAudio.volume = e.target.value;
+          });
+      }
+
+      // 3.2 Toggle Header (Olhinho)
+      if (toggleHeaderBtn) {
+          const header = document.querySelector('header');
+          toggleHeaderBtn.onclick = () => {
+              playSound('click');
+              if (header.style.display === 'none') {
+                  header.style.display = 'block';
+                  toggleHeaderBtn.querySelector('img').src = 'img/visibility.svg';
+                  toggleHeaderBtn.style.opacity = '1';
+              } else {
+                  header.style.display = 'none';
+                  toggleHeaderBtn.querySelector('img').src = 'img/visibility_off.svg';
+                  toggleHeaderBtn.style.opacity = '0.6';
+              }
+          };
+      }
+
+      // 3.3 Abrir Configuração de Deck (Botão dentro do menu)
+      const configModal = document.getElementById('configModal');
+      const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
+      
+      if (openDeckConfigBtn && configModal) {
+          openDeckConfigBtn.onclick = () => {
+              playSound('click');
+              settingsModal.style.display = 'none'; // Fecha o menu principal
+              configModal.style.display = 'flex';   // Abre o config de deck
+          };
+          
+          if(closeConfigModalBtn) {
+              closeConfigModalBtn.onclick = () => {
+                  playSound('click');
+                  configModal.style.display = 'none';
+                  settingsModal.style.display = 'flex'; // Reabre o menu principal ao voltar
+              };
+          }
+      }
+      
+      // Lógica do Botão "Aplicar e Resetar" (Deck)
+      const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
+      const configInputs = document.querySelectorAll('.card-config-item input');
+      
+      // Bloqueia inputs para não-host
+      configInputs.forEach(input => { if (myPlayerId !== 1) input.disabled = true; });
+
+      if (applyDeckConfigBtn) {
+          if (myPlayerId !== 1) {
+              applyDeckConfigBtn.disabled = true;
+              applyDeckConfigBtn.style.background = '#555';
+              applyDeckConfigBtn.textContent = 'Apenas o Host pode aplicar';
+          } else {
+              applyDeckConfigBtn.onclick = () => {
+                  playSound('click');
+                  const newConfig = {};
+                  configInputs.forEach(input => {
+                      let val = parseInt(input.value);
+                      if (isNaN(val) || val < 0) val = 0;
+                      if (val > 10) val = 10;
+                      newConfig[input.dataset.card] = val;
+                  });
+                  resetTable(newConfig);
+                  configModal.style.display = 'none';
+              };
+          }
+      }
 
 
-     // === LÓGICA DO MODAL DE INFO (COM 3 FASES) ===
+      // 4. Modal de Info (Regras)
       const infoBtn = document.getElementById('infoBtn');
       const infoModal = document.getElementById('infoModal');
-      const closeModalBtn = document.getElementById('closeModalBtn');
+      const closeInfoBtn = document.getElementById('closeModalBtn'); // ID do botão X do info
       const flipCard = document.querySelector('.flip-card');
-      
-      // Referências às imagens dentro do card
       const frontImg = flipCard ? flipCard.querySelector('.flip-card-front img') : null;
       const backImg = flipCard ? flipCard.querySelector('.flip-card-back img') : null;
+      const ruleImages = ['img/front-actions.png', 'img/dlc-actions.png', 'img/back-actions.png'];
+      let currentRuleIndex = 0;
 
-      // Lista das 3 imagens (Ciclo: Base -> DLC -> Turno)
-      const ruleImages = [
-        'img/front-actions.png', // 1. Ações Base (Início)
-        'img/dlc-actions.png',   // 2. Ações DLC (Adicione esta imagem na pasta img/)
-        'img/back-actions.png'   // 3. Ações Turno
-      ];
-
-      let currentRuleIndex = 0; 
-
-      if (infoBtn && infoModal && closeModalBtn && flipCard) {
-        
-        // Ao abrir, reseta para o estado inicial
+      if (infoBtn && infoModal) {
         infoBtn.onclick = () => {
           playSound('click');
           infoModal.style.display = 'flex';
-          
-          // Reseta a carta para a posição inicial e imagem 1
-          currentRuleIndex = 0;
-          flipCard.classList.remove('is-flipped');
-          frontImg.src = ruleImages[0];
-          backImg.src = ruleImages[1]; // Já prepara a imagem 2 no verso
+          if (flipCard) {
+            currentRuleIndex = 0;
+            flipCard.classList.remove('is-flipped');
+            frontImg.src = ruleImages[0];
+            backImg.src = ruleImages[1];
+          }
         };
-
-        // Função para fechar o modal
-        const closeModal = () => {
-            playSound('click');
-            infoModal.style.display = 'none';
-        };
-        
-        closeModalBtn.onclick = closeModal;
-        
-        // Fecha ao clicar no fundo escuro
-        infoModal.onclick = (e) => {
-          if (e.target === infoModal) closeModal();
-        };
-
-        // Lógica de Girar e Trocar Imagem (Ciclo Infinito)
-        flipCard.onclick = () => {
-            playSound('card-slide');
-            
-            // 1. Gira a carta
-            flipCard.classList.toggle('is-flipped');
-            
-            // 2. Avança o índice para a próxima imagem da lista
-            currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
-            
-            // 3. Troca a imagem que está ESCONDIDA (atrás) no meio da animação
-            // Espera 500ms (metade do tempo da transição CSS de 1s)
-            setTimeout(() => {
-                const nextImageIndex = (currentRuleIndex + 1) % ruleImages.length;
-                
-                if (flipCard.classList.contains('is-flipped')) {
-                    // Se estamos vendo o Verso, trocamos a Frente (que está escondida)
-                    frontImg.src = ruleImages[nextImageIndex];
-                } else {
-                    // Se estamos vendo a Frente, trocamos o Verso (que está escondido)
-                    backImg.src = ruleImages[nextImageIndex];
-                }
-            }, 500);
-        };
-      }
-
-      // [NOVO] LÓGICA DO CONTADOR DO ASILO
-      if (asylumPlusBtn && asylumMinusBtn) {
-        asylumPlusBtn.onclick = () => updateAsylumScore(1);
-        asylumMinusBtn.onclick = () => updateAsylumScore(-1);
-      }
-
-      // [NOVO] LÓGICA DO MODAL DE CONFIGURAÇÃO
-      const configBtn = document.getElementById('configBtn');
-      const configModal = document.getElementById('configModal');
-      const closeConfigModalBtn = document.getElementById('closeConfigModalBtn');
-      const applyDeckConfigBtn = document.getElementById('applyDeckConfigBtn');
-      const configInputs = document.querySelectorAll('.card-config-item input');
-
-      if (configBtn && configModal && closeConfigModalBtn) {
-
-        playSound('click'); // <--- ADICIONE AQUI
-        configBtn.onclick = () => { configModal.style.display = 'flex'; };
-
-        playSound('click'); // <--- ADICIONE AQUI
-        closeConfigModalBtn.onclick = () => { configModal.style.display = 'none'; };
-      }
-
-      // Lógica dos Inputs (apenas desabilitar)
-      configInputs.forEach(input => {
-        if (myPlayerId !== 1) {
-          input.disabled = true;
+        if(closeInfoBtn) {
+            closeInfoBtn.onclick = () => {
+              playSound('click');
+              infoModal.style.display = 'none';
+            };
         }
-      });
-
-      // [NOVA LÓGICA] Botão Aplicar
-      if (applyDeckConfigBtn) {
-        if (myPlayerId !== 1) {
-          applyDeckConfigBtn.disabled = true;
-          applyDeckConfigBtn.style.background = '#555';
-          applyDeckConfigBtn.textContent = 'Apenas o Host (Jogador 1) pode aplicar';
-        } else {
-          applyDeckConfigBtn.onclick = () => {
-            playSound('click'); // <--- ADICIONE AQUI
-            // 1. Monta o objeto de configuração
-            const newConfig = {};
-            configInputs.forEach(input => {
-              const cardType = input.dataset.card;
-              let quantity = parseInt(input.value);
-              if (isNaN(quantity) || quantity < 0) quantity = 0;
-              if (quantity > 10) quantity = 10;
-              input.value = quantity; // Corrige a UI
-              newConfig[cardType] = quantity;
-            });
-
-            console.log("Aplicando nova configuração e resetando...", newConfig);
-
-            // 2. Chama o reset passando a nova config
-            resetTable(newConfig);
-
-            // 3. Fecha o modal
-            configModal.style.display = 'none';
+        // Flip Card Logic
+        if (flipCard) {
+          flipCard.onclick = () => {
+            playSound('card-slide');
+            flipCard.classList.toggle('is-flipped');
+            currentRuleIndex = (currentRuleIndex + 1) % ruleImages.length;
+            setTimeout(() => {
+              const nextIndex = (currentRuleIndex + 1) % ruleImages.length;
+              if (flipCard.classList.contains('is-flipped')) {
+                frontImg.src = ruleImages[nextIndex];
+              } else {
+                backImg.src = ruleImages[nextIndex];
+              }
+            }, 500);
           };
         }
       }
 
-
-      // Controles de pontos +/- e NOVO BOTÃO DE REMOVER
+      // 5. Listeners de Jogadores e Asilo
       document.querySelectorAll('.player-area').forEach(area => {
         const pid = parseInt(area.dataset.player);
-
-        // Listener para remover (kick) o jogador
         const removeBtn = area.querySelector('.remove-player');
-        if (removeBtn) {
-          removeBtn.addEventListener('click', () => {
-            kickPlayer(pid);
-          });
-        }
+        if (removeBtn) removeBtn.addEventListener('click', () => kickPlayer(pid));
 
-        // [NOVO] Listener para trocar religião
         const religionEl = area.querySelector('.religion-status');
-        if (religionEl) {
-          religionEl.addEventListener('click', () => {
-            toggleReligion(pid);
-          });
-        }
+        if (religionEl) religionEl.addEventListener('click', () => toggleReligion(pid));
 
-        // Listeners Plus/Minus
         area.querySelector('.plus').addEventListener('click', () => updateScore(pid, 1));
         area.querySelector('.minus').addEventListener('click', () => updateScore(pid, -1));
       });
-    }
 
+      if (document.getElementById('asylum-plus')) {
+          document.getElementById('asylum-plus').onclick = () => updateAsylumScore(1);
+          document.getElementById('asylum-minus').onclick = () => updateAsylumScore(-1);
+      }
+    }
 
     
     // [CORREÇÃO] Usando sessionStorage para persistência por ABA
